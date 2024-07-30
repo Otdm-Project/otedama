@@ -1,0 +1,12 @@
+[Unit]
+Description=Rust WebSocket Server
+After=network.target
+
+[Service]
+User=apiuser
+Group=apiuser
+ExecStart=/home/apiuser/websocket/target/release/websocket
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
