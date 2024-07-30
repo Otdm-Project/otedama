@@ -1,0 +1,11 @@
+[Unit]
+Description=VPNServer Service
+After=network.target
+
+[Service]
+User=vpnuser
+ExecStart=/path/to/your/vpnserver/binary
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

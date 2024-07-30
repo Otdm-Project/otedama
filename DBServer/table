@@ -1,0 +1,8 @@
+CREATE TABLE customers (
+    customer_id UUID PRIMARY KEY,
+    vpn_server_public_key TEXT,
+    customer_public_key TEXT,
+    server_virtual_ip TEXT,
+    customer_virtual_ip TEXT,
+    assigned_subdomain TEXT
+);
