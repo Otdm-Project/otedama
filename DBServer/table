@@ -1,8 +1,10 @@
-CREATE TABLE customers (
-    customer_id UUID PRIMARY KEY,
-    vpn_server_public_key TEXT,
-    customer_public_key TEXT,
-    server_virtual_ip TEXT,
-    customer_virtual_ip TEXT,
-    assigned_subdomain TEXT
+USE your_keyspace;
+
+CREATE TABLE vpn_keys (
+    id UUID PRIMARY KEY,
+    SvIP text,
+    CvIP text,
+    server_public_key text,
+    client_public_key text,
+    subdomain text
 );

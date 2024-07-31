@@ -1,5 +1,1 @@
 cluster_name: 'DBCluster'
-seeds: "<DBServerのグローバルIPアドレス>"
-listen_address: "<DBServerのグローバルIPアドレス>" 
-rpc_address: "<LAN内アドレス>"
-endpoint_snitch: SimpleSnitch
