@@ -1,0 +1,7 @@
+# /etc/blackbox.yml
+modules:
+  https_200:
+    prober: http
+    http:
+      valid_status_codes: [200]
+      fail_if_not_ssl: true
