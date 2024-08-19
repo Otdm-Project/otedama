@@ -1,6 +1,0 @@
-[cassandra]
-name=Apache Cassandra
-baseurl=https://rpm.datastax.com/community
-gpgcheck=1
-repo_gpgcheck=0
-gpgkey=https://rpm.datastax.com/rpm/repo/liberation.gpg
