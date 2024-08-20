@@ -1,0 +1,25 @@
+sudo dnf update -y
+mkdir temp
+cd temp
+curl -O https://download.java.net/java/ga/jdk11/openjdk-11_linux-x64_bin.tar.gz
+sudo tar -zxvf openjdk-11_linux-x64_bin.tar.gz
+sudo mv ./jdk-11 /opt/java-11-openjdk
+echo "export JAVA_HOME=/opt/java-11-openjdk" | sudo tee -a /etc/profile.d/jdk.sh
+echo "export PATH=\$JAVA_HOME/bin:\$PATH" | sudo tee -a /etc/profile.d/jdk.sh
+source /etc/profile.d/jdk.sh
+sudo yum install python3 -y 
+
+sudo vi /etc/yum.repos.d/cassandra.repo
+↓を記述
+[cassandra]
+name=Apache Cassandra
+baseurl=https://redhat.cassandra.apache.org/41x/
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://downloads.apache.org/cassandra/KEYS
+
+sudo yum update -y 
+sudo yum install cassandra -y 
+
+sudo reboot 
+sudo service cassandra start
