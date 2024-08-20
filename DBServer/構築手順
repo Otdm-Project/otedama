@@ -20,6 +20,7 @@ gpgkey=https://downloads.apache.org/cassandra/KEYS
 
 sudo yum update -y 
 sudo yum install cassandra -y 
-
 sudo reboot 
 sudo service cassandra start
+sudo dnf install python3-pip -y
+pip install cqlsh
