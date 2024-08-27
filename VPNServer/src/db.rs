@@ -1,3 +1,4 @@
+[ec2-user@ip-172-31-81-213 src]$ cat db.rs 
 use std::process::Command;
 use std::io;
 

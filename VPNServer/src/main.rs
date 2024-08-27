@@ -1,5 +1,6 @@
 mod db;
 mod handler;
+mod wireguard;
 
 use warp::Filter;
 use std::net::SocketAddr;
