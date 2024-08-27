@@ -1,3 +1,4 @@
+[ec2-user@ip-172-31-81-213 vpnserver]$ cat Cargo.toml 
 [package]
 name = "vpnserver"
 version = "0.1.0"
@@ -7,4 +8,3 @@ edition = "2021"
 tokio = { version = "1", features = ["full"] }
 warp = "0.3"
 futures-util = "0.3"
-

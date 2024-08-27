@@ -6,7 +6,7 @@ use url::Url;
 #[tokio::main]
 async fn main() {
     // WebSocketサーバーのURLを指定
-    let url = Url::parse("ws://APIServerのグローバルIPアドレス:8080/ws").unwrap();
+    let url = Url::parse("ws://<APIServerのグローバルIPアドレス>:8080/ws").unwrap();
 
     // WebSocketサーバーに接続
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
@@ -14,9 +14,9 @@ async fn main() {
     // WebSocketストリームを送信と受信に分割
     let (mut write, mut read) = ws_stream.split();
 
-    // メッセージを送信するタスク
+    // 公開鍵を送信するタスク
     let send_task = tokio::spawn(async move {
-        let msg = Message::text("Hello from APIClient");
+        let msg = Message::text("pubkeytestpubkeytestpubkeytestpubkeytestpubkeytest");
         write.send(msg).await.expect("Failed to send message");
     });
 

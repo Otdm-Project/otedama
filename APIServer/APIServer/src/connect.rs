@@ -80,6 +80,8 @@ pub async fn start_websocket_server() {
             ws.on_upgrade(handle_socket)
         });
 
-    let addr: SocketAddr = "<APIServerのプライベートIPアドレス>:8080".parse().expect("Unable to parse socket address");
+    let addr: SocketAddr = "<DBServerのグローバルIPアドレス>:8080".parse().expect("Unable to parse socket address");
     warp::serve(ws_route).run(addr).await;
 }
+
+
