@@ -1,18 +1,12 @@
-mod connect;
-
-#[tokio::main]
-async fn main() {
-    println!("Starting WebSocket server...");
-    connect::start_websocket_server().await;
-}
-
-[ec2-user@ip-172-31-90-93 src]$ cat connect.rs 
 use warp::Filter;
 use warp::ws::{Message, WebSocket};
 use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::net::SocketAddr;
 use futures_util::{StreamExt, SinkExt};
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use url::Url;
 
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
@@ -28,7 +22,10 @@ async fn handle_socket(ws: WebSocket) {
                     let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
                     send_to_db(id, text).expect("Failed to send data to DB");
 
-                    tx.send(Message::text("Public key received and stored")).await.unwrap();
+                    // VPNServerにトンネル生成の指示を送信
+                    send_tunnel_creation_request(id).await;
+
+                    tx.send(Message::text("Public key received and stored, tunnel creation requested")).await.unwrap();
                 }
             }
             Err(e) => {
@@ -46,11 +43,34 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
     );
 
     Command::new("cqlsh")
-        .arg("DBServerのグローバルIPアドレス")
+        .arg("<DBServerのグローバルIPアドレス>")
         .arg("-e")
         .arg(insert_query)
         .output()?;
     Ok(())
+}
+
+async fn send_tunnel_creation_request(customer_id: usize) {
+    let url = Url::parse("ws://<VPNServerのグローバルIPアドレス>:8090/ws").unwrap();
+    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
+
+    let (mut write, mut read) = ws_stream.split();
+
+    let send_task = tokio::spawn(async move {
+        let msg = TungsteniteMessage::text(customer_id.to_string());
+        write.send(msg).await.expect("Failed to send customer ID");
+    });
+
+    let receive_task = tokio::spawn(async move {
+        while let Some(Ok(msg)) = read.next().await {
+            if msg.is_text() {
+                println!("Received from VPNServer: {}", msg.to_text().unwrap());
+            }
+        }
+    });
+
+    send_task.await.unwrap();
+    receive_task.await.unwrap();
 }
 
 pub async fn start_websocket_server() {
