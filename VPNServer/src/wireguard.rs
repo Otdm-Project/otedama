@@ -48,3 +48,28 @@ pub fn allocate_ip_address() -> String {
 
     format!("{}.{}.{}.{}", ip_octets[0], ip_octets[1], ip_octets[2], ip_octets[3])
 }
+
+pub fn add_peer_to_config(client_public_key: &str, client_ip: &str) -> std::io::Result<()> {
+    let status = Command::new("sudo")
+        .arg("./add_peer.sh")
+        .arg(client_public_key)
+        .arg(client_ip)
+        .status()?;
+
+    if status.success() {
+        println!("Peer information successfully added to config.");
+    } else {
+        eprintln!("Failed to add peer information to config.");
+    }
+
+    Ok(())
+}
+
+pub fn read_config() -> std::io::Result<String> {
+    let output = Command::new("sudo")
+        .arg("./read_config.sh")
+        .output()?;
+
+    let config_content = String::from_utf8_lossy(&output.stdout).to_string();
+    Ok(config_content)
+}
