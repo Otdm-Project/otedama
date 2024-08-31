@@ -43,7 +43,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
     );
 
     Command::new("cqlsh")
-        .arg("<DBServerのグローバルIPアドレス>")
+        .arg("3.91.133.20")
         .arg("-e")
         .arg(insert_query)
         .output()?;
@@ -51,7 +51,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
 }
 
 async fn send_tunnel_creation_request(customer_id: usize) {
-    let url = Url::parse("ws://<VPNServerのグローバルIPアドレス>:8090/ws").unwrap();
+    let url = Url::parse("ws://54.89.71.141:8090/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
 
     let (mut write, mut read) = ws_stream.split();
@@ -80,8 +80,6 @@ pub async fn start_websocket_server() {
             ws.on_upgrade(handle_socket)
         });
 
-    let addr: SocketAddr = "<APIServerのプライベートIPアドレス>:8080".parse().expect("Unable to parse socket address");
+    let addr: SocketAddr = "172.31.84.182:8080".parse().expect("Unable to parse socket address");
     warp::serve(ws_route).run(addr).await;
 }
-
-

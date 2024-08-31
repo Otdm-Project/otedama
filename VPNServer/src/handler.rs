@@ -50,6 +50,11 @@ pub async fn handle_socket(ws: WebSocket) {
                                     Ok(config_content) => {
                                         println!("Current WireGuard config:\n{}", config_content);
                                         tx.send(Message::text("Tunnel creation and peer configuration completed")).await.unwrap();
+
+                                        // APIServerに通知を送信
+                                        let notification_message = format!("Peer setup completed for Customer ID: {}", customer_id);
+                                        tx.send(Message::text(notification_message)).await.unwrap();
+                                        println!("Notification sent to APIServer for Customer ID: {}", customer_id);
                                     }
                                     Err(e) => {
                                         eprintln!("Failed to read WireGuard config: {}", e);
@@ -72,3 +77,5 @@ pub async fn handle_socket(ws: WebSocket) {
         }
     }
 }
+
+

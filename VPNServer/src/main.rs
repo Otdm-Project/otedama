@@ -1,3 +1,4 @@
+[ec2-user@ip-172-31-87-183 src]$ cat main.rs 
 mod db;
 mod handler;
 mod wireguard;
@@ -17,3 +18,4 @@ async fn main() {
     println!("VPNServer is running on {}", addr);
     warp::serve(ws_route).run(addr).await;
 }
+
