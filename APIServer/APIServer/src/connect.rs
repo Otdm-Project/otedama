@@ -1,8 +1,6 @@
 use warp::Filter;
 use warp::ws::{Message, WebSocket};
-use std::process::Command;
 use std::sync::atomic::{AtomicUsize, Ordering};
-use std::net::SocketAddr;
 use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
@@ -17,15 +15,22 @@ async fn handle_socket(ws: WebSocket) {
             Ok(msg) => {
                 if msg.is_text() {
                     let text = msg.to_str().unwrap();
-                    println!("Received: {}", text);
+                    if text.contains("INSERT completed for Customer ID") {
+                        println!("Received notification from VPNServer: {}", text);
 
-                    let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-                    send_to_db(id, text).expect("Failed to send data to DB");
+                        let customer_id: usize = text.split_whitespace().last().unwrap().parse().unwrap();
+                        send_subdomain_creation_request(customer_id).await;
+                    } else {
+                        println!("Received: {}", text);
 
-                    // VPNServerにトンネル生成の指示を送信
-                    send_tunnel_creation_request(id).await;
+                        let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+                        send_to_db(id, text).expect("Failed to send data to DB");
 
-                    tx.send(Message::text("Public key received and stored, tunnel creation requested")).await.unwrap();
+                        // VPNServerへのトンネル生成の指示
+                        send_tunnel_creation_request(id).await;
+                    }
+
+                    tx.send(Message::text("Operation completed")).await.unwrap();
                 }
             }
             Err(e) => {
@@ -33,6 +38,11 @@ async fn handle_socket(ws: WebSocket) {
                 break;
             }
         }
+    }
+
+    // WebSocket接続を適切に終了
+    if let Err(e) = tx.close().await {
+        eprintln!("Failed to close WebSocket connection: {}", e);
     }
 }
 
@@ -42,8 +52,8 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
         id, public_key
     );
 
-    Command::new("cqlsh")
-        .arg("3.91.133.20")
+    std::process::Command::new("cqlsh")
+        .arg("54.173.244.147")
         .arg("-e")
         .arg(insert_query)
         .output()?;
@@ -51,26 +61,27 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
 }
 
 async fn send_tunnel_creation_request(customer_id: usize) {
-    let url = Url::parse("ws://54.89.71.141:8090/ws").unwrap();
+    let url = Url::parse("ws://54.85.62.31:8090/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
 
-    let (mut write, mut read) = ws_stream.split();
+    let (mut write, _) = ws_stream.split();
 
-    let send_task = tokio::spawn(async move {
-        let msg = TungsteniteMessage::text(customer_id.to_string());
-        write.send(msg).await.expect("Failed to send customer ID");
-    });
+    let msg = TungsteniteMessage::text(customer_id.to_string());
+    write.send(msg).await.expect("Failed to send customer ID");
 
-    let receive_task = tokio::spawn(async move {
-        while let Some(Ok(msg)) = read.next().await {
-            if msg.is_text() {
-                println!("Received from VPNServer: {}", msg.to_text().unwrap());
-            }
-        }
-    });
+    println!("Sent tunnel creation request for Customer ID: {}", customer_id);
+}
 
-    send_task.await.unwrap();
-    receive_task.await.unwrap();
+async fn send_subdomain_creation_request(customer_id: usize) {
+    let url = Url::parse("ws://44.211.223.63:8100/ws").unwrap();
+    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to ProxyServer");
+
+    let (mut write, _) = ws_stream.split();
+
+    let msg = TungsteniteMessage::text(customer_id.to_string());
+    write.send(msg).await.expect("Failed to send subdomain creation request");
+
+    println!("Sent subdomain creation request for Customer ID: {}", customer_id);
 }
 
 pub async fn start_websocket_server() {
@@ -80,6 +91,6 @@ pub async fn start_websocket_server() {
             ws.on_upgrade(handle_socket)
         });
 
-    let addr: SocketAddr = "172.31.84.182:8080".parse().expect("Unable to parse socket address");
+    let addr = "0.0.0.0:8080".parse::<std::net::SocketAddr>().expect("Unable to parse socket address");
     warp::serve(ws_route).run(addr).await;
 }

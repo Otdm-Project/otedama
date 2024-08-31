@@ -2,6 +2,21 @@ use warp::ws::{Message, WebSocket};
 use futures_util::{StreamExt, SinkExt};
 use crate::db;
 use crate::wireguard;
+use tokio_tungstenite::connect_async;
+use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
+use url::Url;
+
+async fn notify_apiserver(customer_id: usize) {
+    let url = Url::parse("ws://44.201.176.82:8080/ws").unwrap();
+    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to APIServer");
+
+    let (mut write, _) = ws_stream.split();
+
+    let msg = TungsteniteMessage::text(format!("INSERT completed for Customer ID: {}", customer_id));
+    write.send(msg).await.expect("Failed to send notification to APIServer");
+
+    println!("Notification sent to APIServer for Customer ID: {}", customer_id);
+}
 
 pub async fn handle_socket(ws: WebSocket) {
     let (mut tx, mut rx) = ws.split();
@@ -29,7 +44,10 @@ pub async fn handle_socket(ws: WebSocket) {
 
                                 // DBに鍵ペアとIPアドレスを保存
                                 match db::insert_tunnel_data(customer_id, &server_public_key, &client_ip, &server_ip) {
-                                    Ok(_) => println!("Successfully inserted tunnel data into DB"),
+                                    Ok(_) => {
+                                        println!("Successfully inserted tunnel data into DB");
+                                        notify_apiserver(customer_id).await;
+                                    }
                                     Err(e) => {
                                         eprintln!("Failed to insert tunnel data into DB: {}", e);
                                         tx.send(Message::text("Error saving tunnel data")).await.unwrap();
@@ -45,22 +63,17 @@ pub async fn handle_socket(ws: WebSocket) {
                                     }
                                 }
 
-                                // 設定ファイルの内容を表示
+                                // WireGuardの設定ファイルを読み込み、ログに出力
                                 match wireguard::read_config() {
                                     Ok(config_content) => {
                                         println!("Current WireGuard config:\n{}", config_content);
-                                        tx.send(Message::text("Tunnel creation and peer configuration completed")).await.unwrap();
-
-                                        // APIServerに通知を送信
-                                        let notification_message = format!("Peer setup completed for Customer ID: {}", customer_id);
-                                        tx.send(Message::text(notification_message)).await.unwrap();
-                                        println!("Notification sent to APIServer for Customer ID: {}", customer_id);
                                     }
                                     Err(e) => {
                                         eprintln!("Failed to read WireGuard config: {}", e);
-                                        tx.send(Message::text("Error reading config")).await.unwrap();
                                     }
                                 }
+
+                                tx.send(Message::text("Tunnel creation and peer configuration completed")).await.unwrap();
                             }
                             Err(e) => {
                                 eprintln!("Failed to retrieve public key: {}", e);
@@ -76,6 +89,9 @@ pub async fn handle_socket(ws: WebSocket) {
             }
         }
     }
+
+    // WebSocket接続を適切に終了
+    if let Err(e) = tx.close().await {
+        eprintln!("Failed to close WebSocket connection: {}", e);
+    }
 }
-
-

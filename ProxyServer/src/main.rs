@@ -1,6 +1,6 @@
-mod db;
 mod handler;
-mod wireguard;
+mod subdomain;
+mod db;
 
 use warp::Filter;
 use std::net::SocketAddr;
@@ -13,7 +13,8 @@ async fn main() {
             ws.on_upgrade(handler::handle_socket)
         });
 
-    let addr: SocketAddr = "0.0.0.0:8090".parse().expect("Unable to parse socket address");
-    println!("VPNServer is running on {}", addr);
+    let addr = "0.0.0.0:8100".parse::<SocketAddr>().expect("Unable to parse socket address");
+    println!("ProxyServer is running on {}", addr);
+
     warp::serve(ws_route).run(addr).await;
 }

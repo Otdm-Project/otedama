@@ -3,7 +3,7 @@ use std::io::Write;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
-static IP_COUNTER: Lazy<Mutex<(u8, u8, u8)>> = Lazy::new(|| Mutex::new((64, 1, 2))); // 初期のクライアントIP (100.64.1.2)
+static IP_COUNTER: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(1)); // 最初のクライアントIP (100.64.0.2)
 
 pub fn generate_keypair() -> (String, String) {
     let private_key_output = Command::new("wg")
@@ -33,24 +33,20 @@ pub fn generate_keypair() -> (String, String) {
 
 pub fn allocate_ip_address() -> String {
     let mut counter = IP_COUNTER.lock().unwrap();
-
-    let (octet2, octet3, octet4) = *counter;
-
-    // IPアドレスの生成
-    let ip_address = format!("100.{}.{}.{}", octet2, octet3, octet4);
-
-    // 次のIPアドレスへ進むロジック
-    if octet4 < 255 {
-        *counter = (octet2, octet3, octet4 + 1);
-    } else if octet3 < 255 {
-        *counter = (octet2, octet3 + 1, 2);
-    } else if octet2 < 96 {
-        *counter = (octet2 + 1, 1, 2);
-    } else {
+    if *counter >= (1 << 18) {
         panic!("No more IP addresses available in the /10 subnet");
     }
 
-    ip_address
+    let ip_octets = [
+        100,
+        64 + ((*counter >> 10) & 0x3F) as u8,
+        ((*counter >> 2) & 0xFF) as u8,
+        ((*counter & 0x03) + 2) as u8,
+    ];
+
+    *counter += 1;
+
+    format!("{}.{}.{}.{}", ip_octets[0], ip_octets[1], ip_octets[2], ip_octets[3])
 }
 
 pub fn add_peer_to_config(client_public_key: &str, client_ip: &str) -> std::io::Result<()> {
@@ -77,4 +73,3 @@ pub fn read_config() -> std::io::Result<String> {
     let config_content = String::from_utf8_lossy(&output.stdout).to_string();
     Ok(config_content)
 }
-
