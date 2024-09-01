@@ -7,7 +7,7 @@ pub fn get_public_key(customer_id: usize) -> Result<String> {
     println!("Executing query: {}", query);
 
     let output = Command::new("cqlsh")
-        .arg("54.173.244.147")
+        .arg("<DBServerのIPアドレス>")
         .arg("-e")
         .arg(query)
         .output()?;
@@ -33,7 +33,7 @@ pub fn insert_tunnel_data(customer_id: usize, server_public_key: &str, client_ip
     println!("Executing insert query: {}", insert_query);
 
     Command::new("cqlsh")
-        .arg("54.173.244.147")
+        .arg("<DBServerのIPアドレス>")
         .arg("-e")
         .arg(insert_query)
         .output()?;

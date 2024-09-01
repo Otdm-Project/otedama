@@ -6,7 +6,7 @@ use url::Url;
 #[tokio::main]
 async fn main() {
     // WebSocketサーバーのURLを指定
-    let url = Url::parse("ws://44.201.176.82:8080/ws").unwrap();
+    let url = Url::parse("ws://<APIServerのIPアドレス>:8080/ws").unwrap();
 
     // WebSocketサーバーに接続
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");

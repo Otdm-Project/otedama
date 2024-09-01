@@ -53,7 +53,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
     );
 
     std::process::Command::new("cqlsh")
-        .arg("54.173.244.147")
+        .arg("<DBServerのIPアドレス>")
         .arg("-e")
         .arg(insert_query)
         .output()?;
@@ -61,7 +61,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
 }
 
 async fn send_tunnel_creation_request(customer_id: usize) {
-    let url = Url::parse("ws://54.85.62.31:8090/ws").unwrap();
+    let url = Url::parse("ws://<VPNServerのIPアドレス>:8090/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
 
     let (mut write, _) = ws_stream.split();
@@ -73,7 +73,7 @@ async fn send_tunnel_creation_request(customer_id: usize) {
 }
 
 async fn send_subdomain_creation_request(customer_id: usize) {
-    let url = Url::parse("ws://44.211.223.63:8100/ws").unwrap();
+    let url = Url::parse("ws://<ProxyServerのIPアドレス>:8100/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to ProxyServer");
 
     let (mut write, _) = ws_stream.split();
