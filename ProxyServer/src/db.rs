@@ -27,7 +27,7 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
     println!("Executing query: {}", query);
 
     let output = Command::new("cqlsh")
-        .arg("<DBServerのIPアドレス>")  // DBServerのグローバルIPアドレス
+        .arg("<DBServerのIPアドレス>")
         .arg("-e")
         .arg(query)
         .output()?;

@@ -1,6 +1,6 @@
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message;
-use futures_util::{StreamExt, SinkExt}; // StreamExtとSinkExtをインポート
+use futures_util::{StreamExt, SinkExt};
 use url::Url;
 
 #[tokio::main]
@@ -16,7 +16,7 @@ async fn main() {
 
     // 公開鍵を送信するタスク
     let send_task = tokio::spawn(async move {
-        let msg = Message::text("pubkeytestpubkeytestpubkeytestpubkeytestpubkeytest");//仮の公開鍵テキストを記載
+        let msg = Message::text("pubkeytestpubkeytestpubkeytestpubkeytestpubkeytest");
         write.send(msg).await.expect("Failed to send message");
     });
 

@@ -1,5 +1,3 @@
-CREATE KEYSPACE IF NOT EXISTS customer_data WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 1};
-
 USE customer_data;
 
 CREATE TABLE IF NOT EXISTS customer_info (
@@ -11,3 +9,5 @@ CREATE TABLE IF NOT EXISTS customer_info (
     vpn_ip_client TEXT,                 -- VPN用のIPアドレス（顧客環境用）
     created_at TIMESTAMP                -- データ作成日時
 );
+
+DESCRIBE keyspaces;
