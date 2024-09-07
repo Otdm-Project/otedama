@@ -5,7 +5,7 @@ use futures_util::{StreamExt, SinkExt};
 use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
-
+// IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
 async fn handle_socket(ws: WebSocket) {
@@ -29,10 +29,11 @@ async fn handle_socket(ws: WebSocket) {
                         // VPNServerへのトンネル生成の指示
                         send_tunnel_creation_request(id).await;
                     }
-
+                    
                     tx.send(Message::text("Operation completed")).await.unwrap();
                 }
             }
+            // エラーならその内容を出力
             Err(e) => {
                 eprintln!("WebSocket error: {}", e);
                 break;
@@ -46,12 +47,13 @@ async fn handle_socket(ws: WebSocket) {
     }
 }
 
+// DBServerに対して生成したID,受領した公開鍵をINSERT
 fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
+    // INSERT用のフォーマットを定義し、引数を用いてCQLSHでINSERTできるように
     let insert_query = format!(
         "INSERT INTO customer_data.customer_info (customer_id, client_public_key) VALUES ({}, '{}');",
         id, public_key
     );
-
     std::process::Command::new("cqlsh")
         .arg("<DBServerのIPアドレス>")
         .arg("-e")
@@ -60,18 +62,19 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
     Ok(())
 }
 
+// VPNServerにIDとトンネル生成指示
 async fn send_tunnel_creation_request(customer_id: usize) {
+    // WebSocketトンネルを確立
     let url = Url::parse("ws://<VPNServerのIPアドレス>:8090/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
-
     let (mut write, _) = ws_stream.split();
-
+    // IDを送信
     let msg = TungsteniteMessage::text(customer_id.to_string());
     write.send(msg).await.expect("Failed to send customer ID");
-
     println!("Sent tunnel creation request for Customer ID: {}", customer_id);
 }
 
+// ProxyServerにサブドメイン生成指示
 async fn send_subdomain_creation_request(customer_id: usize) {
     let url = Url::parse("ws://<ProxyServerのIPアドレス>:8100/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to ProxyServer");
@@ -84,6 +87,7 @@ async fn send_subdomain_creation_request(customer_id: usize) {
     println!("Sent subdomain creation request for Customer ID: {}", customer_id);
 }
 
+// WebSocket待受処理
 pub async fn start_websocket_server() {
     let ws_route = warp::path("ws")
         .and(warp::ws())
