@@ -8,6 +8,7 @@ lazy_static::lazy_static! {
     static ref SUBDOMAIN_COUNTER: Mutex<Vec<usize>> = Mutex::new(vec![0]);
 }
 
+// サブドメイン生成
 pub fn generate_subdomain() -> Result<String> {
     let mut counter = SUBDOMAIN_COUNTER.lock().unwrap();
     let mut subdomain = String::new();
