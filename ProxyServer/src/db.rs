@@ -1,14 +1,13 @@
 use std::process::Command;
 use std::io::Result;
 
+// 顧客のIDを指定してサブドメインをDBServerに送信
 pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()> {
     let insert_query = format!(
         "UPDATE customer_data.customer_info SET subdomain = '{}' WHERE customer_id = {};",
         subdomain, customer_id
     );
-
     println!("Inserting subdomain into DB: {}", insert_query);
-
     Command::new("cqlsh")
         .arg("<DBServerのIPアドレス>")
         .arg("-e")
@@ -18,14 +17,13 @@ pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()>
     Ok(())
 }
 
+// 顧客のIDを指定してそれに紐付いた仮想IPアドレスを取得
 pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
     let query = format!(
         "SELECT vpn_ip_client, vpn_ip_server FROM customer_data.customer_info WHERE customer_id = {};",
         customer_id
     );
-
     println!("Executing query: {}", query);
-
     let output = Command::new("cqlsh")
         .arg("<DBServerのIPアドレス>")
         .arg("-e")
@@ -38,6 +36,7 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
     let mut client_ip = None;
     let mut server_ip = None;
 
+    //DBServerより取得した表形式の出力からIPアドレスの部分のみを抽出
     for line in output_str.lines() {
         if line.trim().is_empty() || line.starts_with("WARNING") || line.contains("vpn_ip_client") {
             continue;
@@ -50,7 +49,6 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
             break;
         }
     }
-
     match (client_ip, server_ip) {
         (Some(c_ip), Some(s_ip)) => {
             println!("Retrieved IPs: Client IP: {}, Server IP: {}", c_ip, s_ip);

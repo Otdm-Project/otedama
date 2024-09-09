@@ -1,6 +1,7 @@
 use std::process::Command;
 use std::io::Result;
 
+// DBServerから顧客環境の公開鍵を取得
 pub fn get_public_key(customer_id: usize) -> Result<String> {
     let query = format!("SELECT client_public_key FROM customer_data.customer_info WHERE customer_id = {};", customer_id);
 
@@ -24,6 +25,7 @@ pub fn get_public_key(customer_id: usize) -> Result<String> {
     }
 }
 
+// DBServerにPeer設定用の情報を送信
 pub fn insert_tunnel_data(customer_id: usize, server_public_key: &str, client_ip: &str, server_ip: &str) -> Result<()> {
     let insert_query = format!(
         "UPDATE customer_data.customer_info SET server_public_key = '{}', vpn_ip_client = '{}', vpn_ip_server = '{}' WHERE customer_id = {};",

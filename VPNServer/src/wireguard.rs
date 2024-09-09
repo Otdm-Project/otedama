@@ -1,10 +1,11 @@
-use std::process::{Command, Stdio}; // 必要な型をインポート
+use std::process::{Command, Stdio}; 
 use std::io::Write;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
 static IP_COUNTER: Lazy<Mutex<u32>> = Lazy::new(|| Mutex::new(1)); // 最初のクライアントIP (100.64.0.2)
 
+//WireGuard用のキーペアを作成
 pub fn generate_keypair() -> (String, String) {
     let private_key_output = Command::new("wg")
         .arg("genkey")
