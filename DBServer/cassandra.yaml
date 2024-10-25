@@ -2,7 +2,9 @@ listen_address: 10.0.10.40
 broadcast_address: 54.92.7.121
 rpc_address: 0.0.0.0
 broadcast_rpc_address: 54.92.7.121
-seed_provider:
-  - class_name: org.apache.cassandra.locator.SimpleSeedProvider
-    parameters:
-      - seeds: "54.92.7.121:7000"
+
+## update で不要になった可能性？
+#seed_provider:
+#  - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+#    parameters:
+#      - seeds: "54.92.7.121:7000"
