@@ -7,7 +7,7 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 
 async fn notify_apiserver(customer_id: usize) {
-    let url = Url::parse("ws://<APIServerのIPアドレス>:8080/ws").unwrap();
+    let url = Url::parse("ws://10.0.10.10:8080/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to APIServer");
 
     let (mut write, _) = ws_stream.split();

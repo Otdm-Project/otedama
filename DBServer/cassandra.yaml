@@ -1,8 +1,8 @@
-listen_address: <DBServerのプライベートIPアドレス>
-broadcast_address: <DBServerのグローバルIPアドレス>
+listen_address: 10.0.10.40
+broadcast_address: 54.92.7.121
 rpc_address: 0.0.0.0
-broadcast_rpc_address: <DBServerのグローバルIPアドレス>
+broadcast_rpc_address: 54.92.7.121
 seed_provider:
   - class_name: org.apache.cassandra.locator.SimpleSeedProvider
     parameters:
-      - seeds: "<DBServerのグローバルIPアドレス>:7000"
+      - seeds: "54.92.7.121:7000"

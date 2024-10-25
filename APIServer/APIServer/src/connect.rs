@@ -55,7 +55,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
         id, public_key
     );
     std::process::Command::new("cqlsh")
-        .arg("<DBServerのIPアドレス>")
+        .arg("10.0.10.40")
         .arg("-e")
         .arg(insert_query)
         .output()?;
@@ -65,7 +65,7 @@ fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
 // VPNServerにIDとトンネル生成指示
 async fn send_tunnel_creation_request(customer_id: usize) {
     // WebSocketトンネルを確立
-    let url = Url::parse("ws://<VPNServerのIPアドレス>:8090/ws").unwrap();
+    let url = Url::parse("ws://10.0.10.20:8090/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to VPNServer");
     let (mut write, _) = ws_stream.split();
     // IDを送信
@@ -76,7 +76,7 @@ async fn send_tunnel_creation_request(customer_id: usize) {
 
 // ProxyServerにサブドメイン生成指示
 async fn send_subdomain_creation_request(customer_id: usize) {
-    let url = Url::parse("ws://<ProxyServerのIPアドレス>:8100/ws").unwrap();
+    let url = Url::parse("ws://10.0.10.30:8100/ws").unwrap();
     let (ws_stream, _) = connect_async(url).await.expect("Failed to connect to ProxyServer");
 
     let (mut write, _) = ws_stream.split();

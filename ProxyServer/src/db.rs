@@ -9,7 +9,7 @@ pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()>
     );
     println!("Inserting subdomain into DB: {}", insert_query);
     Command::new("cqlsh")
-        .arg("<DBServerのIPアドレス>")
+        .arg("10.0.10.40")
         .arg("-e")
         .arg(insert_query)
         .output()?;
@@ -25,7 +25,7 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
     );
     println!("Executing query: {}", query);
     let output = Command::new("cqlsh")
-        .arg("<DBServerのIPアドレス>")
+        .arg("10.0.10.40")
         .arg("-e")
         .arg(query)
         .output()?;
