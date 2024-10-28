@@ -8,6 +8,7 @@ sudo rm /etc/wireguard/wg0.conf
 DB初期化
 ```
 USE customer_data;
+DROP TABLE customer_data.customer_info ;
 CREATE TABLE IF NOT EXISTS customer_info (
     customer_id INT PRIMARY KEY,
     client_public_key TEXT,
