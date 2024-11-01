@@ -2,12 +2,8 @@ use warp::ws::{Message, WebSocket};
 use futures_util::{StreamExt, SinkExt};
 use crate::subdomain;
 use crate::db;
-use std::fs::OpenOptions;
-use std::io::Write;
 
 pub async fn handle_socket(ws: WebSocket) {
-    println!("New WebSocket connection established.");
-
     let (mut tx, mut rx) = ws.split();
     while let Some(result) = rx.next().await {
         match result {
@@ -28,11 +24,6 @@ pub async fn handle_socket(ws: WebSocket) {
                                         match db::get_virtual_ips(customer_id) {
                                             Ok((client_ip, server_ip)) => {
                                                 println!("Retrieved IPs: Client IP: {}, Server IP: {}", client_ip, server_ip);
-                                                if let Err(e) = update_haproxy_config(&client_ip, &server_ip) {
-                                                    eprintln!("Failed to update HAProxy config: {}", e);
-                                                } else {
-                                                    println!("HAProxy config updated successfully.");
-                                                }
                                             }
                                             Err(e) => {
                                                 eprintln!("Failed to retrieve IPs from DB: {}", e);
@@ -51,8 +42,6 @@ pub async fn handle_socket(ws: WebSocket) {
                                 tx.send(Message::text("Error generating subdomain")).await.unwrap();
                             }
                         }
-                    } else {
-                        eprintln!("Invalid Customer ID received: {}", text);
                     }
                 }
             }
@@ -63,18 +52,7 @@ pub async fn handle_socket(ws: WebSocket) {
         }
     }
 
-    // WebSocket接続を適切に終了
     if let Err(e) = tx.close().await {
         eprintln!("Failed to close WebSocket connection: {}", e);
     }
-}
-
-fn update_haproxy_config(client_ip: &str, server_ip: &str) -> std::io::Result<()> {
-    let mut haproxy_cfg = OpenOptions::new()
-        .write(true)
-        .append(true)
-        .open("/etc/haproxy/haproxy.cfg")?;
-
-    writeln!(haproxy_cfg, "    server {} {}:80 check", client_ip, server_ip)?;
-    Ok(())
 }

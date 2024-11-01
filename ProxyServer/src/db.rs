@@ -13,7 +13,6 @@ pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()>
         .arg("-e")
         .arg(insert_query)
         .output()?;
-
     Ok(())
 }
 
@@ -36,7 +35,7 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
     let mut client_ip = None;
     let mut server_ip = None;
 
-    //DBServerより取得した表形式の出力からIPアドレスの部分のみを抽出
+    // DBServerからの出力からIPアドレス部分のみを抽出
     for line in output_str.lines() {
         if line.trim().is_empty() || line.starts_with("WARNING") || line.contains("vpn_ip_client") {
             continue;

@@ -62,18 +62,6 @@ pub async fn handle_socket(ws: WebSocket) {
                                         tx.send(Message::text("Error adding peer to config")).await.unwrap();
                                     }
                                 }
-
-                                // WireGuardの設定ファイルを読み込み、ログに出力
-                                match wireguard::read_config() {
-                                    Ok(config_content) => {
-                                        println!("Current WireGuard config:\n{}", config_content);
-                                    }
-                                    Err(e) => {
-                                        eprintln!("Failed to read WireGuard config: {}", e);
-                                    }
-                                }
-
-                                tx.send(Message::text("Tunnel creation and peer configuration completed")).await.unwrap();
                             }
                             Err(e) => {
                                 eprintln!("Failed to retrieve public key: {}", e);
@@ -90,7 +78,6 @@ pub async fn handle_socket(ws: WebSocket) {
         }
     }
 
-    // WebSocket接続を適切に終了
     if let Err(e) = tx.close().await {
         eprintln!("Failed to close WebSocket connection: {}", e);
     }
