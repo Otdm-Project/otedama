@@ -29,16 +29,7 @@ async fn handle_socket(ws: WebSocket) {
                         let customer_id: usize = text.split_whitespace().last().unwrap().parse().unwrap();
                         send_subdomain_creation_request(customer_id).await;
 
-                        // DBから顧客情報を取得し、APIClientにスマートに送信
                         if let Some(info) = retrieve_customer_info_from_db(customer_id) {
-                            println!(
-                                "取得した顧客情報:\n顧客公開鍵: {}\nサーバ公開鍵: {}\n顧客IP: {}\nサーバIP: {}\nサブドメイン: {}",
-                                info.client_public_key,
-                                info.server_public_key,
-                                info.vpn_ip_client,
-                                info.vpn_ip_server,
-                                info.subdomain
-                            );
                             let response = format!(
                                 "顧客情報:\n\
                                 顧客公開鍵: {}\n\
@@ -52,10 +43,24 @@ async fn handle_socket(ws: WebSocket) {
                                 info.vpn_ip_server,
                                 info.subdomain
                             );
-                            tx.send(Message::text(response)).await.expect("Failed to send customer info");
+                        
+                            // 顧客情報のメッセージ送信とエラーハンドリング
+                            if let Err(e) = tx.send(Message::text(response)).await {
+                                eprintln!("Failed to send customer info: {:?}", e);  // エラー内容を表示
+                            } else {
+                                println!("Customer info sent successfully");  // メッセージが送信できたことを表示
+                        
+                                // "OK"メッセージを送信
+                                if let Err(e) = tx.send(Message::text("OK")).await {
+                                    eprintln!("Failed to send OK message: {:?}", e);  // エラー内容を表示
+                                } else {
+                                    println!("OK message sent successfully");  // メッセージが送信できたことを表示
+                                }
+                            }
                         } else {
                             tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
                         }
+                        
                     } else {
                         println!("Received: {}", text);
 
@@ -65,8 +70,8 @@ async fn handle_socket(ws: WebSocket) {
                         // VPNServerへのトンネル生成の指示
                         send_tunnel_creation_request(id).await;
                     }
-
-                    tx.send(Message::text("Operation completed")).await.unwrap();
+                //この時点のprintはうまくいく
+                tx.send(Message::text("Operation completed")).await.unwrap();
                 }
             }
             Err(e) => {
