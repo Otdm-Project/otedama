@@ -14,6 +14,8 @@ static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 async fn main() {
     println!("Starting WebSocket server...");
     start_websocket_server().await;
+
+    
 }
 
 async fn handle_socket(ws: WebSocket) {
@@ -35,11 +37,9 @@ async fn handle_socket(ws: WebSocket) {
                     }
                     
                     println!("Received notification from VPNServer: {}", text);
-                    tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
                     // トンネルとサブドメインの生成リクエストを送信
                     send_tunnel_creation_request(id).await;
                     send_subdomain_creation_request(id).await;
-                    tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
                     
                     // DBから顧客情報を取得して応答
                     if let Some(info) = retrieve_customer_info_from_db(id) {
@@ -56,7 +56,6 @@ async fn handle_socket(ws: WebSocket) {
                             info.vpn_ip_server,
                             info.subdomain
                         );
-                        tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
                         // 顧客情報のメッセージ送信
                         if let Err(e) = tx.send(Message::text(response)).await {
                             eprintln!("Failed to send customer info: {:?}", e);
