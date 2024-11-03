@@ -73,6 +73,72 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
     }
 }
 
+
+async fn handle_socket(ws: WebSocket) {
+    let (mut tx, mut rx) = ws.split();
+    while let Some(result) = rx.next().await {
+        match result {
+            Ok(msg) => {
+                if msg.is_text() {
+                    let text = msg.to_str().unwrap();
+                    println!("Received: {}", text);
+                    
+                    // DBにデータを送信
+                    let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+                    if let Err(e) = send_to_db(id, text) {
+                        eprintln!("Failed to send data to DB: {:?}", e);
+                        tx.send(Message::text("DBへのデータ送信に失敗しました")).await.unwrap();
+                        continue;
+                    }
+                    
+                    // 送信内容に応じた処理
+                    if text.contains("INSERT completed for Customer ID") {
+                        println!("Received notification from VPNServer: {}", text);
+
+                        // トンネルとサブドメインの生成リクエストを送信
+                        send_tunnel_creation_request(id).await;
+                        send_subdomain_creation_request(id).await;
+
+                        // DBから顧客情報を取得して応答
+                        if let Some(info) = retrieve_customer_info_from_db(id) {
+                            let response = format!(
+                                "顧客情報:\n\
+                                顧客公開鍵: {}\n\
+                                サーバ公開鍵: {}\n\
+                                顧客IP: {}\n\
+                                サーバIP: {}\n\
+                                サブドメイン: {}",
+                                info.client_public_key,
+                                info.server_public_key,
+                                info.vpn_ip_client,
+                                info.vpn_ip_server,
+                                info.subdomain
+                            );
+
+                            // 顧客情報のメッセージ送信
+                            if let Err(e) = tx.send(Message::text(response)).await {
+                                eprintln!("Failed to send customer info: {:?}", e);
+                            } else {
+                                println!("Customer info sent successfully");
+                            }
+                        } else {
+                            tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
+                        }
+                    }
+                    
+                    // メッセージが正常に処理されたことを通知
+                    tx.send(Message::text("Operation completed")).await.unwrap();
+                }
+            }
+            Err(e) => {
+                eprintln!("WebSocket error: {}", e);
+                break;
+            }
+        }
+    }
+    println!("接続が切断されました。");
+}
+
 // 顧客情報の解析
 fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
     let mut lines = output.lines();
@@ -108,69 +174,6 @@ struct CustomerInfo {
     vpn_ip_server: String,
     subdomain: String,
 }
-
-
-async fn handle_socket(ws: WebSocket) {
-    let (mut tx, mut rx) = ws.split();
-    while let Some(result) = rx.next().await {
-        match result {
-            Ok(msg) => {
-                if msg.is_text() {
-                    let text = msg.to_str().unwrap();
-                    if text.contains("") {
-                        println!("Received notification from VPNServer: {}", text);
-
-                        let customer_id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-                        send_tunnel_creation_request(customer_id).await;
-                        send_subdomain_creation_request(customer_id).await;
-
-                        if let Some(info) = retrieve_customer_info_from_db(customer_id) {
-                            let response = format!(
-                                "顧客情報:\n\
-                                顧客公開鍵: {}\n\
-                                サーバ公開鍵: {}\n\
-                                顧客IP: {}\n\
-                                サーバIP: {}\n\
-                                サブドメイン: {}",
-                                info.client_public_key,
-                                info.server_public_key,
-                                info.vpn_ip_client,
-                                info.vpn_ip_server,
-                                info.subdomain
-                            );
-                        
-                            // 顧客情報のメッセージ送信とエラーハンドリング
-                            if let Err(e) = tx.send(Message::text(response)).await {
-                                eprintln!("Failed to send customer info: {:?}", e);  // エラー内容を表示
-                            } else {
-                                println!("Customer info sent successfully");  // メッセージが送信できたことを表示
-                            }
-                        } else {
-                            tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
-                        }
-                        
-                    } else {
-                        println!("Received: {}", text);
-
-                        let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-                        send_to_db(id, text).expect("Failed to send data to DB");
-                    }
-                //この時点のprintはうまくいく
-                tx.send(Message::text("Operation completed")).await.unwrap();
-                }
-            }
-            Err(e) => {
-                eprintln!("WebSocket error: {}", e);
-                break;
-            }
-        }
-    }
-
-    println!("接続が切断されました。");
-}
-
-
-
 
 // WebSocket待受処理
 async fn start_websocket_server() {
