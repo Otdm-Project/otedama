@@ -32,6 +32,7 @@ pub fn generate_keypair() -> (String, String) {
     (private_key, public_key)
 }
 
+// 仮想IPアドレスの生成処理
 pub fn allocate_ip_address() -> String {
     let mut counter = IP_COUNTER.lock().unwrap();
     if *counter >= (1 << 18) {
@@ -50,6 +51,7 @@ pub fn allocate_ip_address() -> String {
     format!("{}.{}.{}.{}", ip_octets[0], ip_octets[1], ip_octets[2], ip_octets[3])
 }
 
+// peer設定追加をシェルで実行
 pub fn add_peer_to_config(client_public_key: &str, client_ip: &str) -> std::io::Result<()> {
     let status = Command::new("sudo")
         .arg("./add_peer.sh")
