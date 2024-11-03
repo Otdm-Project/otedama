@@ -26,7 +26,6 @@ pub async fn handle_socket(ws: WebSocket) {
                 if msg.is_text() {
                     let text = msg.to_str().unwrap();
                     println!("Received tunnel creation request for Customer ID: {}", text);
-
                     let customer_id: usize = text.parse().unwrap_or(0);
                     if customer_id > 0 {
                         match db::get_public_key(customer_id) {

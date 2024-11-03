@@ -91,39 +91,36 @@ async fn handle_socket(ws: WebSocket) {
                         continue;
                     }
                     
-                    // 送信内容に応じた処理
-                    if text.contains("INSERT completed for Customer ID") {
-                        println!("Received notification from VPNServer: {}", text);
+                    println!("Received notification from VPNServer: {}", text);
 
-                        // トンネルとサブドメインの生成リクエストを送信
-                        send_tunnel_creation_request(id).await;
-                        send_subdomain_creation_request(id).await;
+                    // トンネルとサブドメインの生成リクエストを送信
+                    send_tunnel_creation_request(id).await;
+                    send_subdomain_creation_request(id).await;
 
-                        // DBから顧客情報を取得して応答
-                        if let Some(info) = retrieve_customer_info_from_db(id) {
-                            let response = format!(
-                                "顧客情報:\n\
-                                顧客公開鍵: {}\n\
-                                サーバ公開鍵: {}\n\
-                                顧客IP: {}\n\
-                                サーバIP: {}\n\
-                                サブドメイン: {}",
-                                info.client_public_key,
-                                info.server_public_key,
-                                info.vpn_ip_client,
-                                info.vpn_ip_server,
-                                info.subdomain
-                            );
+                    // DBから顧客情報を取得して応答
+                    if let Some(info) = retrieve_customer_info_from_db(id) {
+                        let response = format!(
+                            "顧客情報:\n\
+                            顧客公開鍵: {}\n\
+                            サーバ公開鍵: {}\n\
+                            顧客IP: {}\n\
+                            サーバIP: {}\n\
+                            サブドメイン: {}",
+                            info.client_public_key,
+                            info.server_public_key,
+                            info.vpn_ip_client,
+                            info.vpn_ip_server,
+                            info.subdomain
+                        );
 
-                            // 顧客情報のメッセージ送信
-                            if let Err(e) = tx.send(Message::text(response)).await {
-                                eprintln!("Failed to send customer info: {:?}", e);
-                            } else {
-                                println!("Customer info sent successfully");
-                            }
+                        // 顧客情報のメッセージ送信
+                        if let Err(e) = tx.send(Message::text(response)).await {
+                            eprintln!("Failed to send customer info: {:?}", e);
                         } else {
-                            tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
+                            println!("Customer info sent successfully");
                         }
+                    } else {
+                        tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
                     }
                     
                     // メッセージが正常に処理されたことを通知

@@ -15,9 +15,19 @@ pub fn get_public_key(customer_id: usize) -> Result<String> {
 
     let public_key_output = String::from_utf8_lossy(&output.stdout).to_string();
 
-    let lines: Vec<&str> = public_key_output.lines().collect();
-    if lines.len() > 3 && lines[2].trim().len() > 0 {
-        let public_key = lines[2].trim().to_string();
+    // 出力の行を取得
+    let mut lines = public_key_output.lines();
+
+    // データ行まで進むためにヘッダーと区切り線をスキップ
+    while let Some(line) = lines.next() {
+        if line.trim().starts_with('-') {
+            break; // 区切り線に到達したら次からデータ行
+        }
+    }
+
+    // 次の行がデータ行であることを期待して取得
+    if let Some(public_key_line) = lines.next() {
+        let public_key = public_key_line.trim().to_string();
         println!("Extracted public key: {}", public_key);
         Ok(public_key)
     } else {
