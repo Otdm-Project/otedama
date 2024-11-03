@@ -16,6 +16,107 @@ async fn main() {
     start_websocket_server().await;
 }
 
+async fn handle_socket(ws: WebSocket) {
+    let (mut tx, mut rx) = ws.split();
+    while let Some(result) = rx.next().await {
+        match result {
+            Ok(msg) => {
+                if msg.is_text() {
+                    println!("実行！");
+                    let text = msg.to_str().unwrap();
+                    println!("Received: {}", text);
+                    
+                    // DBにデータを送信
+                    let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
+                    if let Err(e) = send_to_db(id, text) {
+                        eprintln!("Failed to send data to DB: {:?}", e);
+                        tx.send(Message::text("DBへのデータ送信に失敗しました")).await.unwrap();
+                        continue;
+                    }
+                    
+                    println!("Received notification from VPNServer: {}", text);
+                    tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+                    // トンネルとサブドメインの生成リクエストを送信
+                    send_tunnel_creation_request(id).await;
+                    send_subdomain_creation_request(id).await;
+                    tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+                    
+                    // DBから顧客情報を取得して応答
+                    if let Some(info) = retrieve_customer_info_from_db(id) {
+                        let response = format!(
+                            "顧客情報:\n\
+                            顧客公開鍵: {}\n\
+                            サーバ公開鍵: {}\n\
+                            顧客IP: {}\n\
+                            サーバIP: {}\n\
+                            サブドメイン: {}",
+                            info.client_public_key,
+                            info.server_public_key,
+                            info.vpn_ip_client,
+                            info.vpn_ip_server,
+                            info.subdomain
+                        );
+                        tokio::time::sleep(tokio::time::Duration::from_millis(5000)).await;
+                        // 顧客情報のメッセージ送信
+                        if let Err(e) = tx.send(Message::text(response)).await {
+                            eprintln!("Failed to send customer info: {:?}", e);
+                        } else {
+                            println!("Customer info sent successfully");
+                        }
+                    } else {
+                        tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
+                    }
+                    
+                    // メッセージが正常に処理されたことを通知
+                    tx.send(Message::text("Operation completed")).await.unwrap();
+                }
+            }
+            Err(e) => {
+                eprintln!("WebSocket error: {}", e);
+                break;
+            }
+        }
+    }
+}
+
+// 顧客情報の解析
+fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
+    let mut lines = output.lines();
+
+    while let Some(line) = lines.next() {
+        if line.contains("client_public_key") {
+            lines.next();
+            break;
+        }
+    }
+
+    if let Some(line) = lines.next() {
+        let fields: Vec<&str> = line.split('|').map(|s| s.trim()).collect();
+        if fields.len() == 5 && fields.iter().all(|f| !f.is_empty()) {
+            return Some(CustomerInfo {
+                client_public_key: fields[0].to_string(),
+                server_public_key: fields[1].to_string(),
+                vpn_ip_client: fields[2].to_string(),
+                vpn_ip_server: fields[3].to_string(),
+                subdomain: fields[4].to_string(),
+            });
+        }
+    }
+    None
+}
+
+// 顧客情報構造体
+#[derive(Debug)]
+struct CustomerInfo {
+    client_public_key: String,
+    server_public_key: String,
+    vpn_ip_client: String,
+    vpn_ip_server: String,
+    subdomain: String,
+}
+
+
+
 // DBServerに対して生成したID,受領した公開鍵をINSERT
 fn send_to_db(id: usize, public_key: &str) -> std::io::Result<()> {
     let insert_query = format!(
@@ -74,103 +175,7 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
 }
 
 
-async fn handle_socket(ws: WebSocket) {
-    let (mut tx, mut rx) = ws.split();
-    while let Some(result) = rx.next().await {
-        match result {
-            Ok(msg) => {
-                if msg.is_text() {
-                    let text = msg.to_str().unwrap();
-                    println!("Received: {}", text);
-                    
-                    // DBにデータを送信
-                    let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-                    if let Err(e) = send_to_db(id, text) {
-                        eprintln!("Failed to send data to DB: {:?}", e);
-                        tx.send(Message::text("DBへのデータ送信に失敗しました")).await.unwrap();
-                        continue;
-                    }
-                    
-                    println!("Received notification from VPNServer: {}", text);
 
-                    // トンネルとサブドメインの生成リクエストを送信
-                    send_tunnel_creation_request(id).await;
-                    send_subdomain_creation_request(id).await;
-
-                    // DBから顧客情報を取得して応答
-                    if let Some(info) = retrieve_customer_info_from_db(id) {
-                        let response = format!(
-                            "顧客情報:\n\
-                            顧客公開鍵: {}\n\
-                            サーバ公開鍵: {}\n\
-                            顧客IP: {}\n\
-                            サーバIP: {}\n\
-                            サブドメイン: {}",
-                            info.client_public_key,
-                            info.server_public_key,
-                            info.vpn_ip_client,
-                            info.vpn_ip_server,
-                            info.subdomain
-                        );
-
-                        // 顧客情報のメッセージ送信
-                        if let Err(e) = tx.send(Message::text(response)).await {
-                            eprintln!("Failed to send customer info: {:?}", e);
-                        } else {
-                            println!("Customer info sent successfully");
-                        }
-                    } else {
-                        tx.send(Message::text("顧客情報の取得に失敗しました")).await.unwrap();
-                    }
-                    
-                    // メッセージが正常に処理されたことを通知
-                    tx.send(Message::text("Operation completed")).await.unwrap();
-                }
-            }
-            Err(e) => {
-                eprintln!("WebSocket error: {}", e);
-                break;
-            }
-        }
-    }
-    println!("接続が切断されました。");
-}
-
-// 顧客情報の解析
-fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
-    let mut lines = output.lines();
-
-    while let Some(line) = lines.next() {
-        if line.contains("client_public_key") {
-            lines.next();
-            break;
-        }
-    }
-
-    if let Some(line) = lines.next() {
-        let fields: Vec<&str> = line.split('|').map(|s| s.trim()).collect();
-        if fields.len() == 5 && fields.iter().all(|f| !f.is_empty()) {
-            return Some(CustomerInfo {
-                client_public_key: fields[0].to_string(),
-                server_public_key: fields[1].to_string(),
-                vpn_ip_client: fields[2].to_string(),
-                vpn_ip_server: fields[3].to_string(),
-                subdomain: fields[4].to_string(),
-            });
-        }
-    }
-    None
-}
-
-// 顧客情報構造体
-#[derive(Debug)]
-struct CustomerInfo {
-    client_public_key: String,
-    server_public_key: String,
-    vpn_ip_client: String,
-    vpn_ip_server: String,
-    subdomain: String,
-}
 
 // WebSocket待受処理
 async fn start_websocket_server() {
