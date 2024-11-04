@@ -17,21 +17,22 @@ static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 #[tokio::main]
 async fn main() {
     println!("Starting WebSocket server...");
-    start_websocket_server().await;
 
-    // サーバを別スレッドで起動
-    let server_handle = thread::spawn(|| {
-        monitoring::start_server();
+    // WebSocketサーバーを非同期タスクで起動
+    tokio::spawn(async {
+        start_websocket_server().await;
     });
 
-    // クライアントを起動
-    let client_handle = thread::spawn(|| {
-        monitoring::start_client();
-    });
+    // monitoring関数を別スレッドで非同期タスクとして実行
+    tokio::task::spawn_blocking(|| {
+        println!("Starting monitoring...");
+        monitoring();
+    })
+    .await
+    .expect("Failed to run monitoring");
 
-    // 両スレッドを終了まで待機
-    server_handle.join().unwrap();
-    client_handle.join().unwrap();
+    // メイン関数が終了しないように待機
+    tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
 }
 
 async fn handle_socket(ws: WebSocket) {
@@ -189,9 +190,6 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
     }
 }
 
-
-
-
 // WebSocket待受処理
 async fn start_websocket_server() {
     let ws_route = warp::path("ws")
@@ -202,4 +200,22 @@ async fn start_websocket_server() {
 
     let addr = "0.0.0.0:8080".parse::<std::net::SocketAddr>().expect("Unable to parse socket address");
     warp::serve(ws_route).run(addr).await;
+}
+
+fn monitoring() {
+    // サーバを別スレッドで起動
+    let server_handle = std::thread::spawn(|| {
+        println!("monitoring S start!");
+        monitoring::start_server();
+    });
+
+    // クライアントを起動
+    let client_handle = std::thread::spawn(|| {
+        println!("monitoring C start!");
+        monitoring::start_client();
+    });
+
+    // 両スレッドを終了まで待機
+    server_handle.join().unwrap();
+    client_handle.join().unwrap();
 }

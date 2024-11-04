@@ -53,12 +53,12 @@ fn main() {
     let server_handle = thread::spawn(|| {
         start_server();
     });
-
+    println!("サーバ起動したで");
     // クライアントを起動
     let client_handle = thread::spawn(|| {
         start_client();
     });
-
+    println!("クライアント起動したで");
     // 両スレッドを終了まで待機
     server_handle.join().unwrap();
     client_handle.join().unwrap();
