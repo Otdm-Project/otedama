@@ -1,6 +1,5 @@
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
-use std::thread;
 use std::time::Duration;
 
 // クライアント側: "Alive"メッセージを5秒ごとに送信
