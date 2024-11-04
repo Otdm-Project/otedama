@@ -6,6 +6,10 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 use std::process::Command;
+use std::thread;
+
+mod monitoring;
+
 
 // IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
@@ -15,7 +19,19 @@ async fn main() {
     println!("Starting WebSocket server...");
     start_websocket_server().await;
 
-    
+    // サーバを別スレッドで起動
+    let server_handle = thread::spawn(|| {
+        monitoring::start_server();
+    });
+
+    // クライアントを起動
+    let client_handle = thread::spawn(|| {
+        monitoring::start_client();
+    });
+
+    // 両スレッドを終了まで待機
+    server_handle.join().unwrap();
+    client_handle.join().unwrap();
 }
 
 async fn handle_socket(ws: WebSocket) {
