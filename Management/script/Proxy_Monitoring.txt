@@ -6,7 +6,7 @@ cd $HOME/exporter
 
 
 curl -OL https://github.com/grafana/loki/releases/download/v3.2.1/promtail-3.2.1.x86_64.rpm
-sudo dnf install promtail-3.2.1.x86_64.rpm
+sudo dnf install -y promtail-3.2.1.x86_64.rpm
 sudo bash -c 'cat << EOL > /etc/promtail/config.yml
 server:
   http_listen_port: 9080
