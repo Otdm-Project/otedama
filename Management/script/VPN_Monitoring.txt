@@ -1,0 +1,98 @@
+sudo timedatectl set-timezone Asia/Tokyo
+sudo adduser --system --no-create-home --shell /usr/sbin/nologin exporter
+
+mkdir $HOME/exporter
+cd $HOME/exporter
+
+
+curl -OL https://github.com/grafana/loki/releases/download/v3.2.1/promtail-3.2.1.x86_64.rpm
+sudo dnf install promtail-3.2.1.x86_64.rpm
+sudo bash -c 'cat << EOL > /etc/promtail/config.yml
+server:
+  http_listen_port: 9080
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+- url: http://10.0.10.50:3100/loki/api/v1/push
+
+scrape_configs:
+- job_name: log
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: VPN_log
+      __path__: /var/log/messages
+EOL'
+sudo systemctl enable promtail
+sudo systemctl start promtail
+
+
+curl -OL https://github.com/Otdm-Project/service-exporter/releases/download/exporter/service-exporter
+curl -OL https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+tar -zxvf node_exporter-1.8.2.linux-amd64.tar.gz
+mv node_exporter-1.8.2.linux-amd64/node_exporter ./
+rm -rf node_exporter-1.8.2.linux-amd64
+rm -rf node_exporter-1.8.2.linux-amd64.tar.gz
+
+
+cd /usr/local/bin
+sudo mv $HOME/exporter/* ./
+rm -rf $HOME/exporter
+
+
+sudo chown root:exporter service-exporter
+sudo chown root:exporter node_exporter
+
+
+sudo chmod 750 service-exporter
+sudo chmod 750 node_exporter
+
+
+sudo bash -c 'cat << EOL > /etc/systemd/system/service-exporter.service
+[Unit]
+Description=service exportter
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/service-exporter
+ExecStop=/bin/kill -KILL $MAINPID
+Restart=on-failure
+User=exporter
+WorkingDirectory=/usr/local/bin
+ExecReload=/bin/kill -KILL $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+EOL'
+
+
+sudo bash -c 'cat << EOL > /etc/systemd/system/node-exporter.service
+[Unit]
+Description=node exportter
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/node_exporter
+ExecStop=/bin/kill -HUP $MAINPID
+Restart=on-failure
+User=exporter
+WorkingDirectory=/usr/local/bin
+ExecReload=/bin/kill -HUP $MAINPID
+
+[Install]
+WantedBy=multi-user.target
+EOL'
+
+
+sudo systemctl daemon-reload
+
+
+sudo systemctl enable service-exporter.service
+sudo systemctl enable node-exporter.service
+
+
+sudo systemctl start service-exporter.service
+sudo systemctl start node-exporter.service
