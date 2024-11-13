@@ -63,3 +63,4 @@ pub async fn handle_socket(ws: WebSocket) {
         eprintln!("Failed to close WebSocket connection: {}", e);
     }
 }
+

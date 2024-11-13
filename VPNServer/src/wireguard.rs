@@ -98,3 +98,4 @@ pub fn add_peer_to_config(client_public_key: &str, client_ip: &str) -> Result<()
     config_file.write_all(peer_config.as_bytes())?;
     Ok(())
 }
+
