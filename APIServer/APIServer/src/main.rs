@@ -141,7 +141,7 @@ fn send_to_db(id: usize, public_key: &str) -> Result<()> {
         "INSERT INTO customer_data.customer_info (customer_id, client_public_key) VALUES ({}, '{}');",
         id, public_key
     );
-    Command::new("cqlsh")
+    Command::new("/home/apiuser/.local/bin/cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
         .arg(insert_query)
