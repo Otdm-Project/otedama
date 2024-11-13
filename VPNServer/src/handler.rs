@@ -17,12 +17,17 @@ pub async fn handle_socket(ws: WebSocket) {
                             Ok(client_public_key) => {
                                 println!("Retrieved client public key: {}", client_public_key);
 
+                                // サーバの公開鍵を取得
+                                let private_key = std::fs::read_to_string("/etc/wireguard/privatekey")
+                                    .expect("Failed to read server private key");
+                                let server_public_key = wireguard::get_server_public_key(&private_key);
+
                                 // 仮想IPアドレスの割り当て
                                 let client_ip = wireguard::allocate_ip_address();
                                 let server_ip = "100.64.0.1".to_string();
 
                                 // DBにトンネルデータを保存
-                                match db::insert_tunnel_data(customer_id, &client_public_key, &client_ip, &server_ip) {
+                                match db::insert_tunnel_data(customer_id, &server_public_key, &client_public_key, &client_ip, &server_ip) {
                                     Ok(_) => println!("Successfully inserted tunnel data into DB"),
                                     Err(e) => {
                                         eprintln!("Failed to insert tunnel data into DB: {}", e);

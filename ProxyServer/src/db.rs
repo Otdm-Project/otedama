@@ -8,7 +8,7 @@ pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()>
         subdomain, customer_id
     );
     println!("Inserting subdomain into DB: {}", insert_query);
-    Command::new("/home/vpnuser/.local/bin/cqlsh")
+    Command::new("cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
         .arg(insert_query)
@@ -23,7 +23,7 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
         customer_id
     );
     println!("Executing query: {}", query);
-    let output = Command::new("/home/vpnuser/.local/bin/cqlsh")
+    let output = Command::new("cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
         .arg(query)

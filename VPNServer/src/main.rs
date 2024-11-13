@@ -8,6 +8,9 @@ use std::net::SocketAddr;
 
 #[tokio::main]
 async fn main() {
+    // WireGuard設定ファイルの初期化
+    wireguard::initialize_wg_config();
+
     // WebSocketサーバーを非同期タスクで起動
     let ws_route = warp::path("ws")
         .and(warp::ws())

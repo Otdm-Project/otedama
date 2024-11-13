@@ -52,4 +52,3 @@ pub fn insert_tunnel_data(customer_id: usize, server_public_key: &str, client_ip
 
     Ok(())
 }
-
