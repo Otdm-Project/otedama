@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::io::Result;
 
 static DOMAIN: &str = "otdm.dev";
-static CHARSET: &str = "abcdefghijklmnopqrstuvwxyz0123456789"; // アルファベットと数字の組み合わせ
+static CHARSET: &str = "abcdefghijklmnopqrstuvwxyz0123456789"; // ドメインに使用するアルファベットと数字の組み合わせ
 
 lazy_static::lazy_static! {
     static ref SUBDOMAIN_COUNTER: Mutex<Vec<usize>> = Mutex::new(vec![0; 5]); // 初期は5文字のカウンタ

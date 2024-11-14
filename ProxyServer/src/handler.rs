@@ -15,7 +15,7 @@ pub async fn handle_socket(ws: WebSocket) {
                     let customer_id: usize = text.parse().unwrap_or(0);
                     if customer_id > 0 {
                         println!("Receive instructions from APIServer");
-
+                        //サブドメインを生成
                         match subdomain::generate_subdomain() {
                             Ok(subdomain) => {
                                 match db::insert_subdomain_to_db(customer_id, &subdomain) {

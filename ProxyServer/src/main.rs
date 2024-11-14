@@ -34,7 +34,7 @@ async fn main() {
     tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
 }
 
-// monitoring関数を呼び出すために定義
+// monitoring関数を呼び出す
 fn monitoring() {
     // クライアントを起動
     let client_handle = std::thread::spawn(|| {
