@@ -40,7 +40,7 @@ pub fn generate_subdomain() -> Result<String> {
 // HAProxy設定ファイルにサーバエントリを追加
 pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     // サーバ名を生成（サブドメインのドットをアンダースコアに置換）
-    let server_name = format!("app_{}", subdomain.replace(".", "_")); // 例: app_abcde_otdm_dev
+    let server_name = format!("{}", subdomain.replace(".", "_")); // abcde_otdm_devのように生成
 
     // HAProxy設定ファイルのパス
     let haproxy_cfg_path = "/etc/haproxy/haproxy.cfg";
