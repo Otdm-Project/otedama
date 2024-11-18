@@ -2,46 +2,56 @@ use std::sync::Mutex;
 use std::io::{Result, Write};
 use std::fs::OpenOptions;
 use std::process::Command;
+use once_cell::sync::Lazy; // Lazyを正しくインポート
 
 static DOMAIN: &str = "otdm.dev";
-static CHARSET: &str = "abcdefghijklmnopqrstuvwxyz0123456789"; // ドメインに使用するアルファベットと数字の組み合わせ
+static CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789"; // 使用する文字セット
 
-lazy_static::lazy_static! {
-    static ref SUBDOMAIN_COUNTER: Mutex<Vec<usize>> = Mutex::new(vec![0; 5]); // 初期は5文字のカウンタ
-}
+// サブドメイン生成用のカウンタ
+static SUBDOMAIN_COUNTER: Lazy<Mutex<Vec<usize>>> = Lazy::new(|| Mutex::new(vec![0; 5]));
 
 // サブドメイン生成
 pub fn generate_subdomain() -> Result<String> {
     let mut counter = SUBDOMAIN_COUNTER.lock().unwrap();
     let mut subdomain = String::new();
 
+    // 現在のカウンタに基づいてサブドメインを生成
     for &index in counter.iter() {
-        subdomain.push(CHARSET.chars().nth(index).unwrap());
+        subdomain.push(CHARSET[index] as char);
     }
 
-    counter[0] += 1;
-    let mut i = 0;
-    while i < counter.len() && counter[i] == CHARSET.len() {
-        counter[i] = 0;
-        if i + 1 < counter.len() {
-            counter[i + 1] += 1;
-        } else {
-            counter.push(0); // 必要に応じて文字数を増加
+    // カウンタをインクリメント（右端から進む）
+    let mut i = counter.len() - 1;
+    loop {
+        counter[i] += 1;
+
+        // 繰り上げ処理
+        if counter[i] < CHARSET.len() {
+            break;
         }
-        i += 1;
+        counter[i] = 0; // 繰り上げた位置をリセット
+
+        // 左側に繰り上げを伝播
+        if i == 0 {
+            // 最左端まで到達したら新しい桁を追加
+            counter.insert(0, 0);
+            break;
+        } else {
+            i -= 1;
+        }
     }
 
+    // 完全なドメイン名を生成
     let full_domain = format!("{}.{}", subdomain, DOMAIN);
     println!("Generated subdomain: {}", full_domain);
 
-    Ok(full_domain)
+    Ok(full_domain) // `Result` 型を返す
 }
 
 // HAProxy設定ファイルにサーバエントリを追加
 pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     // サーバ名を生成（サブドメインのドットをアンダースコアに置換）
-    let server_name = format!("{}", subdomain.replace(".", "_")); // abcde_otdm_devのように生成
-
+    let server_name = format!("{}", subdomain.replace(".", "_"));
 
     // HAProxyのbackendセクションにサーバエントリを追加
     let new_server_entry = format!("    server {} {}:80 check\n", server_name, client_ip);
@@ -67,7 +77,7 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
 
 // サブドメインを生成し、HAProxyに追加する
 pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
-    let subdomain = generate_subdomain()?;
+    let subdomain = generate_subdomain()?; // 修正: `Result<String>` を期待
     add_server_to_haproxy(&subdomain, client_ip)?;
     Ok(subdomain)
 }

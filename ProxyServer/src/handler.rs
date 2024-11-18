@@ -15,21 +15,25 @@ pub async fn handle_socket(ws: WebSocket) {
                     let customer_id: usize = text.parse().unwrap_or(0);
                     if customer_id > 0 {
                         println!("Receive instructions from APIServer");
-                        //サブドメインを生成
-                        match subdomain::generate_subdomain() {
+                        // サブドメインを生成して登録
+                        match subdomain::generate_and_add_subdomain("192.168.1.100") {
                             Ok(subdomain) => {
+                                // サブドメインをDBに保存
                                 match db::insert_subdomain_to_db(customer_id, &subdomain) {
                                     Ok(_) => {
                                         println!("Successfully inserted subdomain into DB: {}", subdomain);
+                                        // 仮想IPアドレスを取得
                                         match db::get_virtual_ips(customer_id) {
                                             Ok((client_ip, server_ip)) => {
                                                 println!("Retrieved IPs: Client IP: {}, Server IP: {}", client_ip, server_ip);
+                                                let response = format!("Subdomain: {}, Client IP: {}, Server IP: {}", subdomain, client_ip, server_ip);
+                                                tx.send(Message::text(response)).await.unwrap();
                                             }
                                             Err(e) => {
                                                 eprintln!("Failed to retrieve IPs from DB: {}", e);
+                                                tx.send(Message::text("Error retrieving IPs from DB")).await.unwrap();
                                             }
                                         }
-                                        tx.send(Message::text("Subdomain generation and DB insertion completed")).await.unwrap();
                                     }
                                     Err(e) => {
                                         eprintln!("Failed to insert subdomain into DB: {}", e);
@@ -38,8 +42,8 @@ pub async fn handle_socket(ws: WebSocket) {
                                 }
                             }
                             Err(e) => {
-                                eprintln!("Failed to generate subdomain: {}", e);
-                                tx.send(Message::text("Error generating subdomain")).await.unwrap();
+                                eprintln!("Failed to generate and add subdomain: {}", e);
+                                tx.send(Message::text("Error generating and adding subdomain")).await.unwrap();
                             }
                         }
                     }

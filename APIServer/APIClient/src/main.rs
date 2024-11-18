@@ -6,17 +6,17 @@ use url::Url;
 #[tokio::main]
 async fn main() {
     // WebSocketサーバーのURLを指定
-    let url = Url::parse("ws://<APIServerのIPアドレス>:8080/ws").unwrap();
+    let url = Url::parse("ws://35.73.31.183:8080/ws").unwrap();
 
-    // WebSocketサーバーに接続
-    let (ws_stream, _) = connect_async(url).await.expect("Failed to connect");
+    // WebSocketサーバーに接続 (urlを文字列に変換)
+    let (ws_stream, _) = connect_async(url.as_str()).await.expect("Failed to connect");
 
     // WebSocketストリームを送信と受信に分割
     let (mut write, mut read) = ws_stream.split();
 
     // 公開鍵を送信するタスク
     let send_task = tokio::spawn(async move {
-        let msg = Message::text("pubkeytestpubkeytestpubkeytestpubkeytestpubkeytest");
+        let msg = Message::text("AAAAC3NzaC1lZDI1NTE5AAAAIGZJ0FHkiayzyphnLtvauFkj5Mn8MWyB7qwsM9RkHE4Z");
         write.send(msg).await.expect("Failed to send message");
     });
 

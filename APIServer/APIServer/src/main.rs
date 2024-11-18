@@ -182,12 +182,15 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
 
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
+        println!("Raw query result: {}", output_str); 
+
         parse_customer_info(&output_str)
     } else {
         eprintln!("Failed to retrieve customer info: {}", String::from_utf8_lossy(&output.stderr));
         None
     }
 }
+
 
 async fn start_websocket_server() {
     let ws_route = warp::path("ws")
