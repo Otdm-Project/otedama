@@ -42,15 +42,14 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     // サーバ名を生成（サブドメインのドットをアンダースコアに置換）
     let server_name = format!("{}", subdomain.replace(".", "_")); // abcde_otdm_devのように生成
 
-    // HAProxy設定ファイルのパス
-    let haproxy_cfg_path = "/etc/haproxy/haproxy.cfg";
 
     // HAProxyのbackendセクションにサーバエントリを追加
     let new_server_entry = format!("    server {} {}:80 check\n", server_name, client_ip);
 
     let mut file = OpenOptions::new()
         .append(true)
-        .open(/etc/haproxy)?;
+        .open("/etc/haproxy/haproxy.cfg")?;
+
     file.write_all(new_server_entry.as_bytes())?;
 
     println!("Added server to HAProxy config: {}", new_server_entry);
