@@ -9,6 +9,7 @@ use std::process::Command;
 use serde::{Serialize};
 use serde_json::{json, to_string};
 use std::io::Result;
+use tokio::time::{sleep, Duration};
 
 mod monitoring;
 
@@ -45,7 +46,7 @@ async fn handle_socket(ws: WebSocket) {
                     println!("実行！");
                     let text = msg.to_str().unwrap();
                     println!("Received: {}", text);
-                    
+
                     // DBにデータを送信
                     let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
                     println!("{},{}", id, text);
@@ -58,16 +59,23 @@ async fn handle_socket(ws: WebSocket) {
                         tx.send(Message::text(error_message.to_string())).await.unwrap();
                         continue;
                     }
-                    
-                    println!("Received notification from VPNServer: {}", text);
-                    // トンネルとサブドメインの生成リクエストを送信
+
+                    println!("DB Insert completed for ID: {}", id);
+
+                    // トンネルとサブドメインの生成リクエストを送信し、完了を待機
                     send_tunnel_creation_request(id).await;
+                    println!("Tunnel creation request completed for ID: {}", id);
+
                     send_subdomain_creation_request(id).await;
-                    
+                    println!("Subdomain creation request completed for ID: {}", id);
+
+                    // 非同期タスクの完了を待機するための遅延処理を追加
+                    sleep(Duration::from_secs(2)).await; 
+
                     // DBから顧客情報を取得して応答
                     if let Some(info) = retrieve_customer_info_from_db(id) {
                         let response = to_string(&info).expect("Failed to serialize customer info");
-                        
+
                         // 顧客情報のメッセージ送信
                         if let Err(e) = tx.send(Message::text(response)).await {
                             eprintln!("Failed to send customer info: {:?}", e);
@@ -81,13 +89,6 @@ async fn handle_socket(ws: WebSocket) {
                         });
                         tx.send(Message::text(error_message.to_string())).await.unwrap();
                     }
-                    
-                    // メッセージが正常に処理されたことを通知
-                    let success_message = json!({
-                        "status": "success",
-                        "message": "Operation completed"
-                    });
-                    tx.send(Message::text(success_message.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
@@ -191,7 +192,6 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
     }
 }
 
-
 async fn start_websocket_server() {
     let ws_route = warp::path("ws")
         .and(warp::ws())
@@ -207,8 +207,8 @@ fn monitoring() {
     let client_handle = std::thread::spawn(|| {
         println!("monitoring C start!");
         monitoring::start_client();
+        
     });
 
     client_handle.join().unwrap();
 }
-
