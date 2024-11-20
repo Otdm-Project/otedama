@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::io::{Result, Write};
 use std::fs::OpenOptions;
 use std::process::Command;
-use once_cell::sync::Lazy; // Lazyを正しくインポート
+use once_cell::sync::Lazy; 
 
 static DOMAIN: &str = "otdm.dev";
 static CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789"; // 使用する文字セット
@@ -45,14 +45,14 @@ pub fn generate_subdomain() -> Result<String> {
     let full_domain = format!("{}.{}", subdomain, DOMAIN);
     println!("Generated subdomain: {}", full_domain);
 
-    Ok(full_domain) // `Result` 型を返す
+    Ok(full_domain) 
 }
 
 // HAProxy設定ファイルにサーバエントリを追加
 pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     // サーバ名を生成（サブドメインのドットをアンダースコアに置換）
     let server_name = format!("{}", subdomain.replace(".", "_"));
-
+    
     // HAProxyのbackendセクションにサーバエントリを追加
     let new_server_entry = format!("    server {} {}:80 check\n", server_name, client_ip);
 
