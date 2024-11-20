@@ -7,9 +7,9 @@ use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 use std::process::Command;
 use serde::{Serialize};
-use serde_json::{json, to_string};
+use serde_json::json;
 use std::io::Result;
-use tokio::time::{sleep, Duration};
+use tokio::time::Duration;
 
 mod monitoring;
 
@@ -43,7 +43,6 @@ async fn handle_socket(ws: WebSocket) {
         match result {
             Ok(msg) => {
                 if msg.is_text() {
-                    println!("実行！");
                     let text = msg.to_str().unwrap();
                     println!("Received: {}", text);
 
@@ -52,49 +51,29 @@ async fn handle_socket(ws: WebSocket) {
                     println!("{},{}", id, text);
                     if let Err(e) = send_to_db(id, text) {
                         eprintln!("Failed to send data to DB: {:?}", e);
-                        let error_message = json!({
-                            "status": "error",
-                            "message": "データ送信に失敗しました"
-                        });
-                        tx.send(Message::text(error_message.to_string())).await.unwrap();
+                        tx.send(Message::text(json!({"status": "error", "message": "データ送信に失敗しました"}).to_string())).await.unwrap();
                         continue;
                     }
 
                     println!("DB Insert completed for ID: {}", id);
 
-                    // トンネルとサブドメインの生成リクエストを送信し、完了を待機
+                    // トンネル生成リクエストを送信し完了を待機
                     send_tunnel_creation_request(id).await;
                     println!("Tunnel creation request completed for ID: {}", id);
 
+                    // サブドメイン生成リクエストを送信し完了を待機
                     send_subdomain_creation_request(id).await;
                     println!("Subdomain creation request completed for ID: {}", id);
 
-                    // 非同期タスクの完了を待機するための遅延処理を追加
-                    sleep(Duration::from_secs(2)).await; 
-
-                    // DBから顧客情報を取得して応答
-                    if let Some(info) = retrieve_customer_info_from_db(id) {
-                        let response = to_string(&info).expect("Failed to serialize customer info");
-                        
-                        // 顧客情報のメッセージ送信
-                        if let Err(e) = tx.send(Message::text(response)).await {
-                            eprintln!("Failed to send customer info: {:?}", e);
-                        } else {
-                            println!("Customer info sent successfully");
-                        }
+                    // DBの更新を確認するためにリトライ
+                    if let Some(info) = wait_for_db_update(id).await {
+                        let response = serde_json::to_string(&info).expect("Failed to serialize customer info");
+                        tx.send(Message::text(response)).await.unwrap();
+                        println!("Customer info sent successfully: {:?}", info);
                     } else {
-                        let error_message = json!({
-                            "status": "error",
-                            "message": "顧客情報の取得に失敗しました"
-                        });
-                        tx.send(Message::text(error_message.to_string())).await.unwrap();
+                        eprintln!("Failed to retrieve updated customer info for ID: {}", id);
+                        tx.send(Message::text(json!({"status": "error", "message": "顧客情報の取得に失敗しました"}).to_string())).await.unwrap();
                     }
-                    // メッセージが正常に処理されたことを通知
-                    let success_message = json!({
-                        "status": "success",
-                        "message": "Operation completed"
-                    });
-                    tx.send(Message::text(success_message.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
@@ -118,28 +97,25 @@ struct CustomerInfo {
     subdomain: String,
 }
 
-fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
-    let mut lines = output.lines();
+async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
+    let max_retries = 10; // 最大リトライ回数
+    let retry_interval = Duration::from_millis(500); // リトライ間隔
 
-    while let Some(line) = lines.next() {
-        if line.contains("client_public_key") {
-            lines.next();
-            break;
+    for attempt in 1..=max_retries {
+        if let Some(info) = retrieve_customer_info_from_db(customer_id) {
+            if info.server_public_key != "null" && info.vpn_ip_client != "null" && info.vpn_ip_server != "null" && info.subdomain != "null" {
+                println!("DB Update verified for ID: {}. Retrieved info: {:?}", customer_id, info);
+                return Some(info); // 更新済みのデータを確認
+            } else {
+                println!("DB Update check attempt {} failed for ID: {}", attempt, customer_id);
+            }
         }
+
+        // リトライ間隔の待機
+        tokio::time::sleep(retry_interval).await;
     }
 
-    if let Some(line) = lines.next() {
-        let fields: Vec<&str> = line.split('|').map(|s| s.trim()).collect();
-        if fields.len() == 5 && fields.iter().all(|f| !f.is_empty()) {
-            return Some(CustomerInfo {
-                client_public_key: fields[0].to_string(),
-                server_public_key: fields[1].to_string(),
-                vpn_ip_client: fields[2].to_string(),
-                vpn_ip_server: fields[3].to_string(),
-                subdomain: fields[4].to_string(),
-            });
-        }
-    }
+    println!("DB Update confirmation failed after {} attempts for ID: {}", max_retries, customer_id);
     None
 }
 
@@ -198,6 +174,31 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
     }
 }
 
+fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
+    let mut lines = output.lines();
+
+    while let Some(line) = lines.next() {
+        if line.contains("client_public_key") {
+            lines.next();
+            break;
+        }
+    }
+
+    if let Some(line) = lines.next() {
+        let fields: Vec<&str> = line.split('|').map(|s| s.trim()).collect();
+        if fields.len() == 5 && fields.iter().all(|f| !f.is_empty()) {
+            return Some(CustomerInfo {
+                client_public_key: fields[0].to_string(),
+                server_public_key: fields[1].to_string(),
+                vpn_ip_client: fields[2].to_string(),
+                vpn_ip_server: fields[3].to_string(),
+                subdomain: fields[4].to_string(),
+            });
+        }
+    }
+    None
+}
+
 async fn start_websocket_server() {
     let ws_route = warp::path("ws")
         .and(warp::ws())
@@ -213,7 +214,6 @@ fn monitoring() {
     let client_handle = std::thread::spawn(|| {
         println!("monitoring C start!");
         monitoring::start_client();
-        
     });
 
     client_handle.join().unwrap();
