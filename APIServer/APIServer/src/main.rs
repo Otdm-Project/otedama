@@ -75,7 +75,7 @@ async fn handle_socket(ws: WebSocket) {
                     // DBから顧客情報を取得して応答
                     if let Some(info) = retrieve_customer_info_from_db(id) {
                         let response = to_string(&info).expect("Failed to serialize customer info");
-
+                        
                         // 顧客情報のメッセージ送信
                         if let Err(e) = tx.send(Message::text(response)).await {
                             eprintln!("Failed to send customer info: {:?}", e);
@@ -89,6 +89,12 @@ async fn handle_socket(ws: WebSocket) {
                         });
                         tx.send(Message::text(error_message.to_string())).await.unwrap();
                     }
+                    // メッセージが正常に処理されたことを通知
+                    let success_message = json!({
+                        "status": "success",
+                        "message": "Operation completed"
+                    });
+                    tx.send(Message::text(success_message.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
