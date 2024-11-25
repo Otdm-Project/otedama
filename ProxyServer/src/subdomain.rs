@@ -2,7 +2,7 @@ use std::sync::Mutex;
 use std::io::{Result, Write};
 use std::fs::OpenOptions;
 use std::process::Command;
-use once_cell::sync::Lazy; 
+use once_cell::sync::Lazy;
 
 static DOMAIN: &str = "otdm.dev";
 static CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789"; // 使用する文字セット
@@ -49,16 +49,16 @@ pub fn generate_subdomain() -> Result<String> {
 }
 
 // HAProxy設定ファイルにサーバエントリを追加
-pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
-    // サーバ名を生成（サブドメインのドットをアンダースコアに置換）
-    let server_name = format!("{}", subdomain.replace(".", "_"));
-    
+pub fn add_server_to_haproxy(client_ip: &str, server_ip: &str) -> Result<()> {
     // HAProxyのbackendセクションにサーバエントリを追加
-    let new_server_entry = format!("    server {} {}:80 check\n", server_name, client_ip);
+    let new_server_entry = format!("    server {} {}:80 check\n", client_ip, server_ip);
 
+    let haproxy_config = "/etc/haproxy/haproxy.cfg";
+
+    // 設定ファイルを開いて追記
     let mut file = OpenOptions::new()
         .append(true)
-        .open("/etc/haproxy/haproxy.cfg")?;
+        .open(haproxy_config)?;
 
     file.write_all(new_server_entry.as_bytes())?;
 
@@ -76,8 +76,8 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
 }
 
 // サブドメインを生成し、HAProxyに追加する
-pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
-    let subdomain = generate_subdomain()?; // 修正: `Result<String>` を期待
-    add_server_to_haproxy(&subdomain, client_ip)?;
+pub fn generate_and_add_subdomain(client_ip: &str, server_ip: &str) -> Result<String> {
+    let subdomain = generate_subdomain()?;
+    add_server_to_haproxy(client_ip, server_ip)?;
     Ok(subdomain)
 }
