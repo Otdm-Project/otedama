@@ -71,9 +71,18 @@ async fn handle_socket(ws: WebSocket) {
                         tx.send(Message::text(response)).await.unwrap();
                         println!("Customer info sent successfully: {:?}", info);
                     } else {
-                        eprintln!("Failed to retrieve updated customer info for ID: {}", id);
-                        tx.send(Message::text(json!({"status": "error", "message": "顧客情報の取得に失敗しました"}).to_string())).await.unwrap();
+                        let error_message = json!({
+                            "status": "error",
+                            "message": "顧客情報の取得に失敗しました"
+                        });
+                        tx.send(Message::text(error_message.to_string())).await.unwrap();
                     }
+                    // メッセージが正常に処理されたことを通知
+                    let success_message = json!({
+                        "status": "success",
+                        "message": "Operation completed"
+                    });
+                    tx.send(Message::text(success_message.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
