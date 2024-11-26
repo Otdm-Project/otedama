@@ -1,10 +1,15 @@
-構築ミス等でDBとVPN設定の初期化が必要担った場合には以下のコマンドを実行してください。
+構築ミス等で設定の初期化が必要になった場合には以下のコマンドを実行してください。
 VPN設定削除
 
 ```
 sudo rm /etc/wireguard/wg0.conf
+sudo cp /etc/wireguard/wg0.conf.bk wg0.conf
+
+```
+Proxy設定初期化
 ```
 
+```
 DB初期化
 ```
 USE customer_data;
