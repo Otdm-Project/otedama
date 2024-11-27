@@ -1,5 +1,6 @@
 use std::process::Command;
 use std::io::Result;
+use std::io::Write;
 
 // WireGuard設定ファイルの初期化
 pub fn initialize_wg_config() {
@@ -22,7 +23,8 @@ pub fn initialize_wg_config() {
 
 // WireGuardにPeerを動的に追加
 pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
-    let output = Command::new("wg")
+    let output = Command::new("sudo")
+        .arg("wg")
         .arg("set")
         .arg("wg0")
         .arg("peer")
@@ -39,7 +41,7 @@ pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
 
     println!("Successfully added peer to WireGuard: PublicKey = {}, AllowedIPs = {}/32", public_key, client_ip);
     Ok(())
-}
+}       
 
 // 秘密鍵の生成または読み込み
 fn generate_or_load_private_key() -> String {
@@ -68,4 +70,32 @@ pub fn allocate_ip_address() -> String {
         COUNTER += 1;
         ip
     }
+}
+
+// サーバ公開鍵の取得
+pub fn get_server_public_key(private_key: &str) -> String {
+    let mut process = Command::new("wg")
+        .arg("pubkey")
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .expect("Failed to execute 'wg pubkey' command");
+
+    {
+        // 標準入力に秘密鍵を送信
+        let stdin = process.stdin.as_mut().expect("Failed to open stdin");
+        stdin.write_all(private_key.as_bytes()).expect("Failed to write private key to stdin");
+    }
+
+    let output = process
+        .wait_with_output()
+        .expect("Failed to read 'wg pubkey' output");
+
+    if !output.status.success() {
+        let error_message = String::from_utf8_lossy(&output.stderr);
+        eprintln!("Failed to generate public key: {}", error_message);
+        panic!("Failed to generate public key");
+    }
+
+    String::from_utf8_lossy(&output.stdout).trim().to_string()
 }
