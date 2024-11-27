@@ -36,7 +36,7 @@ pub async fn handle_socket(ws: WebSocket) {
                                 }
 
                                 // WireGuardのPeer設定の追加
-                                match wireguard::add_peer_to_config(&client_public_key, &client_ip) {
+                                match wireguard::add_peer_to_wireguard(&client_public_key, &client_ip) {
                                     Ok(_) => println!("Successfully added peer to WireGuard config"),
                                     Err(e) => {
                                         eprintln!("Failed to add peer to WireGuard config: {}", e);
@@ -63,4 +63,3 @@ pub async fn handle_socket(ws: WebSocket) {
         eprintln!("Failed to close WebSocket connection: {}", e);
     }
 }
-
