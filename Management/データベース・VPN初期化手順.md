@@ -26,3 +26,4 @@ CREATE TABLE IF NOT EXISTS customer_info (
 );
 SELECT * FROM customer_data.customer_info ;
 ```
+何も顧客データがない表が帰ってくればOK!
