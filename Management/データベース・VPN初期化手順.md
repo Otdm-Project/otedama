@@ -3,7 +3,7 @@ VPN設定削除
 
 ```
 sudo rm /etc/wireguard/wg0.conf
-sudo cp /etc/wireguard/wg0.conf.bk wg0.conf
+sudo cp /etc/wireguard/wg0.conf.bk /etc/wireguard/wg0.conf
 
 ```
 Proxy設定初期化
