@@ -1,6 +1,6 @@
+use std::fs::{self, OpenOptions};
+use std::io::{Result, Write};
 use std::process::Command;
-use std::io::Result;
-use std::io::Write;
 
 // WireGuard設定ファイルの初期化
 pub fn initialize_wg_config() {
@@ -9,7 +9,6 @@ pub fn initialize_wg_config() {
     let config_content = format!(
         "[Interface]\n\
         Address = 100.64.0.1/10\n\
-        SaveConfig = true\n\
         PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n\
         PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n\
         ListenPort = 51820\n\
@@ -21,8 +20,9 @@ pub fn initialize_wg_config() {
     println!("WireGuard config initialized.");
 }
 
-// WireGuardにPeerを動的に追加
+// WireGuardにPeerを動的に追加し、wg0.confに追記
 pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
+    // Peerを動的に追加
     let output = Command::new("sudo")
         .arg("wg")
         .arg("set")
@@ -40,8 +40,34 @@ pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
     }
 
     println!("Successfully added peer to WireGuard: PublicKey = {}, AllowedIPs = {}/32", public_key, client_ip);
+
+    // 設定をwg0.confに追記
+    append_peer_to_config(public_key, client_ip)?;
+
     Ok(())
-}       
+}
+
+// wg0.confに新しいPeerを追記
+fn append_peer_to_config(public_key: &str, client_ip: &str) -> Result<()> {
+    // 既存の設定を保持して読み込む
+    let mut config = fs::read_to_string("/etc/wireguard/wg0.conf").expect("Failed to read WireGuard config");
+
+    // 新しいPeer情報を追加
+    let peer_entry = format!(
+        "\n[Peer]\n\
+        PublicKey = {}\n\
+        AllowedIPs = {}/32\n",
+        public_key, client_ip
+    );
+
+    config.push_str(&peer_entry);
+
+    // ファイル全体を書き直す
+    std::fs::write("/etc/wireguard/wg0.conf", config)?;
+
+    println!("Successfully appended peer to wg0.conf: {}", peer_entry.trim());
+    Ok(())
+}
 
 // 秘密鍵の生成または読み込み
 fn generate_or_load_private_key() -> String {
