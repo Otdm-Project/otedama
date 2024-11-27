@@ -8,7 +8,8 @@ sudo cp /etc/wireguard/wg0.conf.bk wg0.conf
 ```
 Proxy設定初期化
 ```
-
+sudo rm /etc/haproxy/haproxy.cfg
+sudo cp /etc/haproxy/haproxy.cfg.bk /etc/haproxy/haproxy.cfg
 ```
 DB初期化
 ```
@@ -23,4 +24,5 @@ CREATE TABLE IF NOT EXISTS customer_info (
     vpn_ip_client TEXT,
     created_at TIMESTAMP
 );
+SELECT * FROM customer_data.customer_info ;
 ```
