@@ -16,7 +16,7 @@ async fn main() {
 
     // 公開鍵を送信するタスク
     let send_task = tokio::spawn(async move {
-        let msg = Message::text("AAAAC3NzaC1lZDI1NTE5AAAAIGZJ0FHkiayzyphnLtvauFkj5Mn8MWyB7qwsM9RkHE4Z");
+        let msg = Message::text("QUFBQUMzTnphQzFsWkRJMU5URTVBQUFBSUdaSjBGSGtpYXl6eXBobkx0dmF1RmtqNU1uOE1XeUI3cXdzTTlSa0hFNFo=");
         write.send(msg).await.expect("Failed to send message");
     });
 
