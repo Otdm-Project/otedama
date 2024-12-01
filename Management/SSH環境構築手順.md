@@ -1,10 +1,3 @@
-# SSH環境構築手順
-
-## managementserverで鍵を生成
-```
-ssh-keygen -t ed25519
-cat id_ed25519.pub
-```
 
 ## 各SSH先サーバでの設定
 ### ホスト名を変更
@@ -52,3 +45,7 @@ sudo systemctl restart sshd
 ```
 userdel -r ec2-user
 ```
+sudo hostnamectl set-hostname db-server
+sed -e '$s|$|-tail|g' in > out
+
+ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIICw4ZzLPjsKazxZUhnk81ODO4WrYelXacg5717HDQJZ managementuser@management-server
