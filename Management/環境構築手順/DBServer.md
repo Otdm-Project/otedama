@@ -1,5 +1,5 @@
 # DBServerの環境構築手順
-1. 以下の項目を指定してAWSでEC2インスタンスを構築する
+以下の項目を指定してAWSでEC2インスタンスを構築する
     * 名前：DBServer
     * AMI：ami-0d9da98839203a9d1
     * インスタンスタイプ：t3.medium
@@ -9,17 +9,35 @@
     ![alt text](image.png)
     * ストレージ設定：8GB
 
-2. ElasticIP:54.65.115.124を関連付け
-3. SSH接続
+ElasticIP:54.65.115.124を関連付け
+SSH接続
 ```
 ssh ec2-user@54.65.115.124
 ```
-4. インストールと設定を入れる
+インストールと設定を入れる
 ```
+sudo useradd -m dbuser
+echo "dbuser ALL=(ALL)       ALL" | sudo tee /etc/sudoers.d/dbuser
+sudo chmod 0440 /etc/sudoers.d/dbuser
+sudo passwd dbuser
+```
+パスワードを入力
+```
+sudo su - dbuser 
+```
+
+
+```
+sudo -u dbuser mkdir -p /home/dbuser/.ssh
+sudo -u dbuser chmod 700 /home/dbuser/.ssh
+echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIICw4ZzLPjsKazxZUhnk81ODO4WrYelXacg5717HDQJZ managementuser@management-server" | sudo tee -a /home/dbuser/.ssh/authorized_keys
+sudo chmod 600 /home/dbuser/.ssh/authorized_keys
+sudo chown -R dbuser:dbuser /home/dbuser/.ssh
+sudo dnf update -y 
 sudo dnf upgrade -y
 sudo dnf install -y java-11-openjdk
 sudo dnf install python3-pip -y
-pip install cqlsh -y 
+pip install cqlsh 
 sudo dnf install chkconfig -y 
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 source $HOME/.cargo/env
@@ -173,6 +191,13 @@ drop_compact_storage_enabled: false
 EOF
 sudo systemctl daemon-reload
 sudo systemctl restart cassandra
+```
+以下のように表示されるためEnterを押下
+```
+1) Proceed with standard installation (default - just press enter)
+2) Customize installation
+3) Cancel installation
+>
 ```
 **cqlshの再起動直後はCQLSHに接続できないです。30秒ほど待てばつながるようになります。**
 ```
