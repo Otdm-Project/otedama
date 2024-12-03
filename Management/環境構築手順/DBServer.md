@@ -256,5 +256,5 @@ ssh db
 以上でDBServerの構築・ログイン手順は終了です。
 
 
-memo 以下の内容を追￥加する
+memo 以下の内容を追加する
 sudo yum install -y initscripts
