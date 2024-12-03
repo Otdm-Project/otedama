@@ -1,13 +1,14 @@
 # DBServerの環境構築手順
 以下の項目を指定してAWSでEC2インスタンスを構築する
-    * 名前：DBServer
-    * AMI：ami-0d9da98839203a9d1
-    * インスタンスタイプ：t3.medium
-    * キーペア：自身の使用するもの
-    * ネットワーク設定：
+* 名前：DB
+* AMI：ami-0d9da98839203a9d1
+* インスタンスタイプ：t3.medium
+* キーペア：自身の使用するもの
+* ネットワーク設定：
 
-    ![alt text](image.png)
-    * ストレージ設定：8GB
+![alt text](image.png)
+
+* ストレージ設定：8GB
 
 ElasticIP:54.65.115.124を関連付け
 SSH接続
@@ -217,4 +218,39 @@ CREATE TABLE IF NOT EXISTS customer_info (
     vpn_ip_client TEXT,                 -- VPN用のIPアドレス（顧客環境用）
     created_at TIMESTAMP                -- データ作成日時
 );
+
 ```
+CQLSHから退出
+```
+exit
+```
+**これ以降の手順はManagementServerの構築後に行ってください**
+SSH接続を一旦退出
+```
+exit
+```
+
+```
+exit
+```
+以下の表示が出ればOK
+```
+Connection to 54.65.115.124 closed.
+```
+
+ManagementServer経由でSSH接続
+```
+ssh managementuser@<ManagementServerのIPアドレス> -p 2455
+```
+**初回のみ**
+```
+ssh dbuser@10.0.10.40
+```
+```
+exit
+```
+**初回のみここまで**
+```
+ssh db
+```
+以上でDBServerの構築・ログイン手順は終了です。
