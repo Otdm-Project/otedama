@@ -48,10 +48,24 @@ pub fn generate_subdomain() -> Result<String> {
     Ok(full_domain) 
 }
 
-// HAProxy設定ファイルにサーバエントリを追加
-pub fn add_server_to_haproxy(client_ip: &str, server_ip: &str) -> Result<()> {
-    // HAProxyのbackendセクションにサーバエントリを追加
-    let new_server_entry = format!("    server {} {}:80 check\n", client_ip, server_ip);
+/// サブドメインを生成し、HAProxyに追加する
+pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
+    let subdomain = generate_subdomain()?;
+    println!("サブドメイン:{}CvIP:{}",subdomain,client_ip);
+    add_server_to_haproxy(&subdomain, client_ip)?;
+    Ok(subdomain)
+}
+
+/// HAProxy設定ファイルにサーバエントリを追加
+pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
+    // ドメイン名内の `.` を `_` に置換
+    let formatted_subdomain = subdomain.replace('.', "_");
+
+    // HAProxy の設定エントリを生成
+    let new_server_entry = format!(
+        "    server {} {}:80 check\n",
+        formatted_subdomain, client_ip
+    );
 
     let haproxy_config = "/etc/haproxy/haproxy.cfg";
 
@@ -73,11 +87,4 @@ pub fn add_server_to_haproxy(client_ip: &str, server_ip: &str) -> Result<()> {
     println!("HAProxy reloaded to apply new configuration.");
 
     Ok(())
-}
-
-// サブドメインを生成し、HAProxyに追加する
-pub fn generate_and_add_subdomain(client_ip: &str, server_ip: &str) -> Result<String> {
-    let subdomain = generate_subdomain()?;
-    add_server_to_haproxy(client_ip, server_ip)?;
-    Ok(subdomain)
 }

@@ -22,7 +22,7 @@ pub async fn handle_socket(ws: WebSocket) {
                             println!("Retrieved IPs: Client IP: {}, Server IP: {}", client_ip, server_ip);
 
                             // サブドメインを生成して登録
-                            match subdomain::generate_and_add_subdomain(&client_ip, &server_ip) {
+                            match subdomain::generate_and_add_subdomain(&client_ip) {
                                 Ok(subdomain) => {
                                     // サブドメインをDBに保存
                                     match db::insert_subdomain_to_db(customer_id, &subdomain) {

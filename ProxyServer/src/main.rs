@@ -1,6 +1,6 @@
 mod handler;
-mod subdomain;
-mod db;
+mod subdomain; 
+mod db;        
 mod monitoring;
 
 use warp::Filter;
@@ -45,3 +45,4 @@ fn monitoring() {
     // 両スレッドを終了まで待機
     client_handle.join().unwrap();
 }
+
