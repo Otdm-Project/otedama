@@ -39,33 +39,10 @@ pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
 
     println!("Successfully added peer to WireGuard: PublicKey = {}, AllowedIPs = {}/32", public_key, client_ip);
 
-    // 設定をwg0.confに追記
-    append_peer_to_config(public_key, client_ip)?;
 
     Ok(())
 }
 
-// wg0.confに新しいPeerを追記
-fn append_peer_to_config(public_key: &str, client_ip: &str) -> Result<()> {
-    // 既存の設定を保持して読み込む
-    let mut config = fs::read_to_string("/etc/wireguard/wg0.conf").expect("Failed to read WireGuard config");
-
-    // 新しいPeer情報を追加
-    let peer_entry = format!(
-        "\n[Peer]\n\
-        PublicKey = {}\n\
-        AllowedIPs = {}/32\n",
-        public_key, client_ip
-    );
-
-    config.push_str(&peer_entry);
-
-    // ファイル全体を書き直す
-    std::fs::write("/etc/wireguard/wg0.conf", config)?;
-
-    println!("Successfully appended peer to wg0.conf: {}", peer_entry.trim());
-    Ok(())
-}
 
 // 秘密鍵の生成または読み込み
 fn generate_or_load_private_key() -> String {
@@ -84,7 +61,6 @@ fn generate_or_load_private_key() -> String {
         private_key_str
     }
 }
-
 // 仮想IPアドレスの割り当て
 static mut COUNTER: u32 = 2;
 
