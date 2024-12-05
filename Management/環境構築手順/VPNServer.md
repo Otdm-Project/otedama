@@ -47,3 +47,39 @@ chmod +x read_config.sh
 echo "vpnuser ALL=(ALL)       ALL"  | sudo tee -a /etc/sudoers
 echo "vpnuser ALL=(ALL) NOPASSWD: /bin/echo >> /etc/wireguard/wg0.conf"  | sudo tee -a /etc/sudoers
 ```
+以下のように表示されるためEnterを押下
+```
+1) Proceed with standard installation (default - just press enter)
+2) Customize installation
+3) Cancel installation
+>
+```
+**これ以降の手順はManagementServerの構築後に行ってください**
+SSH接続を一旦退出
+```
+exit
+```
+以下の表示が出ればOK
+```
+Connection to 54.178.75.68 closed.
+```
+ManagementServer経由でSSH接続
+```
+ssh managementuser@<ManagementServerのIPアドレス> -p 2455
+```
+**初回のみ**
+```
+ssh vpnuser@10.0.10.20
+```
+```
+exit
+```
+**初回のみここまで**
+```
+ssh vpn
+```
+gitからプログラムコードを移行
+Cargo.tomlも移行
+
+
+以上でVPNServerの構築・ログイン手順は終了です。
