@@ -47,3 +47,5 @@ chmod +x read_config.sh
 echo "vpnuser ALL=(ALL)       ALL"  | sudo tee -a /etc/sudoers
 echo "vpnuser ALL=(ALL) NOPASSWD: /bin/echo >> /etc/wireguard/wg0.conf"  | sudo tee -a /etc/sudoers
 ```
+
+//todo VPNServerのスクショをtemo-ssh込のものに変える
