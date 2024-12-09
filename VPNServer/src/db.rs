@@ -1,16 +1,17 @@
 use std::process::Command;
 use std::io::Result;
+use tracing::{info, error};
 
 // DBServerから顧客環境の公開鍵を取得
 pub fn get_public_key(customer_id: usize) -> Result<String> {
     let query = format!("SELECT client_public_key FROM customer_data.customer_info WHERE customer_id = {};", customer_id);
 
-    println!("Executing query: {}", query);
+    info!("Executing query: {}", query);
 
     let output = Command::new("/home/vpnuser/.local/bin/cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
-        .arg(query)
+        .arg(&query)
         .output()?;
 
     let public_key_output = String::from_utf8_lossy(&output.stdout).to_string();
@@ -28,9 +29,10 @@ pub fn get_public_key(customer_id: usize) -> Result<String> {
     // 次の行がデータ行であることを期待して取得
     if let Some(public_key_line) = lines.next() {
         let public_key = public_key_line.trim().to_string();
-        println!("Extracted public key: {}", public_key);
+        info!("Extracted public key: {}", public_key);
         Ok(public_key)
     } else {
+        error!("Public key not found for customer_id: {}", customer_id);
         Err(std::io::Error::new(std::io::ErrorKind::NotFound, "Public key not found"))
     }
 }
@@ -42,13 +44,19 @@ pub fn insert_tunnel_data(customer_id: usize, server_public_key: &str, client_pu
         server_public_key, client_public_key, client_ip, server_ip, customer_id
     );
 
-    println!("Executing insert query: {}", insert_query);
+    info!("Executing insert query: {}", insert_query);
 
-    Command::new("/home/vpnuser/.local/bin/cqlsh")
+    let output = Command::new("/home/vpnuser/.local/bin/cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
-        .arg(insert_query)
+        .arg(&insert_query)
         .output()?;
+
+    if !output.status.success() {
+        error!("Failed to insert tunnel data for customer_id: {}", customer_id);
+    } else {
+        info!("Successfully inserted tunnel data for customer_id: {}", customer_id);
+    }
 
     Ok(())
 }

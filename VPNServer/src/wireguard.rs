@@ -1,6 +1,7 @@
 use std::fs::{self};
 use std::io::{Result, Write};
 use std::process::Command;
+use tracing::{info, error};
 
 // WireGuard設定ファイルの初期化
 pub fn initialize_wg_config() {
@@ -14,7 +15,7 @@ pub fn initialize_wg_config() {
     );
 
     std::fs::write("/etc/wireguard/wg0.conf", config_content).expect("Failed to create WireGuard config file");
-    println!("WireGuard config initialized.");
+    info!("WireGuard config initialized.");
 }
 
 // WireGuardにPeerを動的に追加し、wg0.confに追記
@@ -31,10 +32,10 @@ pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
         .output()?;
     if !output.status.success() {
         let error_message = String::from_utf8_lossy(&output.stderr);
-        eprintln!("Failed to add peer to WireGuard: {}", error_message);
-        return Err(std::io::Error::new(std::io::ErrorKind::Other, error_message));
+        error!("Failed to add peer to WireGuard: {}", error_message);
+        return Err(std::io::Error::new(std::io::ErrorKind::Other, error_message.to_string()));
     }
-    println!("Successfully added peer to WireGuard: PublicKey = {}, AllowedIPs = {}/32", public_key, client_ip);
+    info!("Successfully added peer to WireGuard: PublicKey = {}, AllowedIPs = {}/32", public_key, client_ip);
     Ok(())
 }
 
@@ -86,7 +87,7 @@ pub fn get_server_public_key(private_key: &str) -> String {
         .expect("Failed to read 'wg pubkey' output");
     if !output.status.success() {
         let error_message = String::from_utf8_lossy(&output.stderr);
-        eprintln!("Failed to generate public key: {}", error_message);
+        error!("Failed to generate public key: {}", error_message);
         panic!("Failed to generate public key");
     }
 

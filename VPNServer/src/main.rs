@@ -5,9 +5,16 @@ mod monitoring;
 
 use warp::Filter;
 use std::net::SocketAddr;
+use tracing::{info, error};
+use tracing_subscriber;
 
 #[tokio::main]
 async fn main() {
+    // ログ初期化
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .init();
+
     // WireGuard設定ファイルの初期化
     wireguard::initialize_wg_config();
 
@@ -19,7 +26,7 @@ async fn main() {
         });
 
     let addr: SocketAddr = "0.0.0.0:8090".parse().expect("Unable to parse socket address");
-    println!("VPNServer is running on {}", addr);
+    info!("VPNServer is running on {}", addr);
 
     tokio::spawn(async move {
         warp::serve(ws_route).run(addr).await;
@@ -27,7 +34,7 @@ async fn main() {
 
     // monitoring関数を別スレッドで非同期タスクとして実行
     tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
+        info!("Starting monitoring...");
         monitoring();
     })
     .await
@@ -37,14 +44,13 @@ async fn main() {
     tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
 }
 
-// monitoring関数を呼び出すために定義
+// monitoring関数を呼び出す
 fn monitoring() {
     // クライアントを起動
     let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
+        info!("monitoring C start!");
         monitoring::start_client();
     });
 
-    // 両スレッドを終了まで待機
     client_handle.join().unwrap();
 }
