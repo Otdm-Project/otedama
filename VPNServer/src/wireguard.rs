@@ -9,8 +9,6 @@ pub fn initialize_wg_config() {
     let config_content = format!(
         "[Interface]\n\
         Address = 100.64.0.1/10\n\
-        PostUp = iptables -A FORWARD -i wg0 -j ACCEPT; iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE\n\
-        PostDown = iptables -D FORWARD -i wg0 -j ACCEPT; iptables -t nat -D POSTROUTING -o eth0 -j MASQUERADE\n\
         ListenPort = 51820\n\
         PrivateKey = {}\n",
         private_key
