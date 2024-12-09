@@ -1,8 +1,7 @@
-use std::io::Write;
-use std::net::TcpStream; 
-use std::time::Duration;
-
 use std::thread;
+use std::io::Write;
+use std::net::TcpStream;
+use std::time::Duration;
 
 // クライアント側: "Alive"メッセージを5秒ごとに送信
 pub fn start_client() {
@@ -11,7 +10,7 @@ pub fn start_client() {
             Ok(mut stream) => {
                 let message = "Alive";
                 stream.write_all(message.as_bytes()).unwrap();
-                println!("Sent: {} for APIServer ", message);
+                println!("Sent: {} for APIServer", message);
             }
             Err(e) => {
                 println!("Failed to connect: {}", e);
