@@ -6,10 +6,12 @@ use tokio_tungstenite::connect_async;
 use tokio_tungstenite::tungstenite::Message as TungsteniteMessage;
 use url::Url;
 use std::process::Command;
-use serde::{Serialize};
+use serde::Serialize;
 use serde_json::json;
 use std::io::Result;
 use tokio::time::Duration;
+use tracing::{info, error};
+use tracing_subscriber;
 
 mod monitoring;
 
@@ -18,7 +20,12 @@ static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
 #[tokio::main]
 async fn main() {
-    println!("Starting WebSocket server...");
+    // ログ初期化
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .init();
+
+    info!("Starting WebSocket server...");
 
     // WebSocketサーバーを非同期タスクで起動
     tokio::spawn(async {
@@ -27,7 +34,7 @@ async fn main() {
 
     // monitoring関数を別スレッドで非同期タスクとして実行
     tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
+        info!("Starting monitoring...");
         monitoring();
     })
     .await
@@ -44,32 +51,32 @@ async fn handle_socket(ws: WebSocket) {
             Ok(msg) => {
                 if msg.is_text() {
                     let text = msg.to_str().unwrap();
-                    println!("Received: {}", text);
+                    info!("Received: {}", text);
 
                     // DBにデータを送信
                     let id = ID_COUNTER.fetch_add(1, Ordering::SeqCst);
-                    println!("{},{}", id, text);
+                    info!("Inserting data to DB: ID={}, public_key={}", id, text);
                     if let Err(e) = send_to_db(id, text) {
-                        eprintln!("Failed to send data to DB: {:?}", e);
+                        error!("Failed to send data to DB: {:?}", e);
                         tx.send(Message::text(json!({"status": "error", "message": "データ送信に失敗しました"}).to_string())).await.unwrap();
                         continue;
                     }
 
-                    println!("DB Insert completed for ID: {}", id);
+                    info!("DB Insert completed for ID: {}", id);
 
                     // トンネル生成リクエストを送信し完了を待機
                     send_tunnel_creation_request(id).await;
-                    println!("Tunnel creation request completed for ID: {}", id);
+                    info!("Tunnel creation request completed for ID: {}", id);
 
                     // サブドメイン生成リクエストを送信し完了を待機
                     send_subdomain_creation_request(id).await;
-                    println!("Subdomain creation request completed for ID: {}", id);
+                    info!("Subdomain creation request completed for ID: {}", id);
 
                     // DBの更新を確認するためにリトライ
-                    if let Some(info) = wait_for_db_update(id).await {
-                        let response = serde_json::to_string(&info).expect("Failed to serialize customer info");
+                    if let Some(info_data) = wait_for_db_update(id).await {
+                        let response = serde_json::to_string(&info_data).expect("Failed to serialize customer info");
                         tx.send(Message::text(response)).await.unwrap();
-                        println!("Customer info sent successfully: {:?}", info);
+                        info!("Customer info sent successfully: {:?}", info_data);
                     } else {
                         let error_message = json!({
                             "status": "error",
@@ -86,14 +93,14 @@ async fn handle_socket(ws: WebSocket) {
                 }
             }
             Err(e) => {
-                eprintln!("WebSocket error: {}", e);
+                error!("WebSocket error: {}", e);
                 break;
             }
         }
     }
 
     if let Err(e) = tx.close().await {
-        eprintln!("Failed to close WebSocket connection: {}", e);
+        error!("Failed to close WebSocket connection: {}", e);
     }
 }
 
@@ -113,10 +120,10 @@ async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
     for attempt in 1..=max_retries {
         if let Some(info) = retrieve_customer_info_from_db(customer_id) {
             if info.server_public_key != "null" && info.vpn_ip_client != "null" && info.vpn_ip_server != "null" && info.subdomain != "null" {
-                println!("DB Update verified for ID: {}. Retrieved info: {:?}", customer_id, info);
+                info!("DB Update verified for ID: {}. Retrieved info: {:?}", customer_id, info);
                 return Some(info); // 更新済みのデータを確認
             } else {
-                println!("DB Update check attempt {} failed for ID: {}", attempt, customer_id);
+                info!("DB Update check attempt {} failed for ID: {}", attempt, customer_id);
             }
         }
 
@@ -124,7 +131,7 @@ async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
         tokio::time::sleep(retry_interval).await;
     }
 
-    println!("DB Update confirmation failed after {} attempts for ID: {}", max_retries, customer_id);
+    info!("DB Update confirmation failed after {} attempts for ID: {}", max_retries, customer_id);
     None
 }
 
@@ -133,11 +140,15 @@ fn send_to_db(id: usize, public_key: &str) -> Result<()> {
         "INSERT INTO customer_data.customer_info (customer_id, client_public_key) VALUES ({}, '{}');",
         id, public_key
     );
-    Command::new("cqlsh")
+    let output = Command::new("cqlsh")
         .arg("10.0.10.40")
         .arg("-e")
         .arg(insert_query)
         .output()?;
+
+    if !output.status.success() {
+        error!("Failed to insert data into DB. Stderr: {:?}", String::from_utf8_lossy(&output.stderr));
+    }
     Ok(())
 }
 
@@ -147,7 +158,7 @@ async fn send_tunnel_creation_request(customer_id: usize) {
     let (mut write, _) = ws_stream.split();
     let msg = TungsteniteMessage::text(customer_id.to_string());
     write.send(msg).await.expect("Failed to send customer ID");
-    println!("Sent tunnel creation request for Customer ID: {}", customer_id);
+    info!("Sent tunnel creation request for Customer ID: {}", customer_id);
 }
 
 async fn send_subdomain_creation_request(customer_id: usize) {
@@ -156,7 +167,7 @@ async fn send_subdomain_creation_request(customer_id: usize) {
     let (mut write, _) = ws_stream.split();
     let msg = TungsteniteMessage::text(customer_id.to_string());
     write.send(msg).await.expect("Failed to send subdomain creation request");
-    println!("Sent subdomain creation request for Customer ID: {}", customer_id);
+    info!("Sent subdomain creation request for Customer ID: {}", customer_id);
 }
 
 fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
@@ -174,11 +185,11 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
 
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
-        println!("Raw query result: {}", output_str); 
+        info!("Raw query result: {}", output_str);
 
         parse_customer_info(&output_str)
     } else {
-        eprintln!("Failed to retrieve customer info: {}", String::from_utf8_lossy(&output.stderr));
+        error!("Failed to retrieve customer info: {}", String::from_utf8_lossy(&output.stderr));
         None
     }
 }
@@ -221,7 +232,7 @@ async fn start_websocket_server() {
 
 fn monitoring() {
     let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
+        info!("monitoring C start!");
         monitoring::start_client();
     });
 
