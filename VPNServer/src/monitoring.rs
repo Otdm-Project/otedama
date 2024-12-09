@@ -10,7 +10,7 @@ pub fn start_client() {
             Ok(mut stream) => {
                 let message = "Alive";
                 stream.write_all(message.as_bytes()).unwrap();
-                println!("Sent: {} for APIServer", message);
+                println!("Sent: {} for VPNServer", message);
             }
             Err(e) => {
                 println!("Failed to connect: {}", e);
