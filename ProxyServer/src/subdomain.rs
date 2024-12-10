@@ -62,7 +62,8 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     file.write_all(new_server_entry.as_bytes())?;
     info!("Added server to HAProxy config: {}", new_server_entry);
 
-    let output = Command::new("systemctl")
+    let output = Command::new("sudo")
+        .arg("systemctl")
         .arg("reload")
         .arg("haproxy")
         .output()?;
@@ -74,3 +75,6 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
 
     Ok(())
 }
+
+//todo プロキシ設定をNO PASSWD設定する
+//todo systemctl reloadをsudoでする
