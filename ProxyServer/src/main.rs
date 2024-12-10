@@ -1,13 +1,20 @@
 mod handler;
 mod subdomain; 
-mod db;        
+mod db; 
 mod monitoring;
 
 use warp::Filter;
 use std::net::SocketAddr;
+use tracing::{info, error};
+use tracing_subscriber;
 
 #[tokio::main]
 async fn main() {
+    // ログ初期化
+    tracing_subscriber::fmt()
+        .with_target(false)
+        .init();
+
     // WebSocketサーバーを非同期タスクで起動
     let ws_route = warp::path("ws")
         .and(warp::ws())
@@ -16,7 +23,7 @@ async fn main() {
         });
 
     let addr = "0.0.0.0:8100".parse::<SocketAddr>().expect("Unable to parse socket address");
-    println!("ProxyServer is running on {}", addr);
+    info!("ProxyServer is running on {}", addr);
 
     tokio::spawn(async move {
         warp::serve(ws_route).run(addr).await;
@@ -24,7 +31,7 @@ async fn main() {
 
     // monitoring関数を別スレッドで非同期タスクとして実行
     tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
+        info!("Starting monitoring...");
         monitoring();
     })
     .await
@@ -36,13 +43,10 @@ async fn main() {
 
 // monitoring関数を呼び出す
 fn monitoring() {
-    // クライアントを起動
     let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
+        info!("monitoring C start!");
         monitoring::start_client();
     });
 
-    // 両スレッドを終了まで待機
     client_handle.join().unwrap();
 }
-
