@@ -25,14 +25,6 @@ async fn main() {
         start_websocket_server().await;
     });
 
-    // monitoring関数を別スレッドで非同期タスクとして実行
-    tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
-        monitoring();
-    })
-    .await
-    .expect("Failed to run monitoring");
-
     // メイン関数が終了しないように待機
     tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
 }
@@ -219,11 +211,3 @@ async fn start_websocket_server() {
     warp::serve(ws_route).run(addr).await;
 }
 
-fn monitoring() {
-    let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
-        monitoring::start_client();
-    });
-
-    client_handle.join().unwrap();
-}
