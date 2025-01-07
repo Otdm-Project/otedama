@@ -1,7 +1,6 @@
 mod handler;
-mod subdomain; 
-mod db;        
-mod monitoring;
+mod subdomain;
+mod db;
 
 use warp::Filter;
 use std::net::SocketAddr;
@@ -22,27 +21,7 @@ async fn main() {
         warp::serve(ws_route).run(addr).await;
     });
 
-    // monitoring関数を別スレッドで非同期タスクとして実行
-    tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
-        monitoring();
-    })
-    .await
-    .expect("Failed to run monitoring");
-
     // メイン関数が終了しないように待機
     tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
-}
-
-// monitoring関数を呼び出す
-fn monitoring() {
-    // クライアントを起動
-    let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
-        monitoring::start_client();
-    });
-
-    // 両スレッドを終了まで待機
-    client_handle.join().unwrap();
 }
 

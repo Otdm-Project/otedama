@@ -11,8 +11,6 @@ use serde_json::json;
 use std::io::Result;
 use tokio::time::Duration;
 
-mod monitoring;
-
 // IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
 
@@ -24,14 +22,6 @@ async fn main() {
     tokio::spawn(async {
         start_websocket_server().await;
     });
-
-    // monitoring関数を別スレッドで非同期タスクとして実行
-    tokio::task::spawn_blocking(|| {
-        println!("Starting monitoring...");
-        monitoring();
-    })
-    .await
-    .expect("Failed to run monitoring");
 
     // メイン関数が終了しないように待機
     tokio::signal::ctrl_c().await.expect("Failed to listen for ctrl+c");
@@ -174,7 +164,7 @@ fn retrieve_customer_info_from_db(customer_id: usize) -> Option<CustomerInfo> {
 
     if output.status.success() {
         let output_str = String::from_utf8_lossy(&output.stdout);
-        println!("Raw query result: {}", output_str); 
+        println!("Raw query result: {}", output_str);
 
         parse_customer_info(&output_str)
     } else {
@@ -217,13 +207,4 @@ async fn start_websocket_server() {
 
     let addr = "0.0.0.0:8080".parse::<std::net::SocketAddr>().expect("Unable to parse socket address");
     warp::serve(ws_route).run(addr).await;
-}
-
-fn monitoring() {
-    let client_handle = std::thread::spawn(|| {
-        println!("monitoring C start!");
-        monitoring::start_client();
-    });
-
-    client_handle.join().unwrap();
 }
