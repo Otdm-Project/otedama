@@ -1,3 +1,2 @@
-.d
-Cargo.lock
-ServerMonitor/target/CACHEDIR.TAG
+**/Cargo.lock
+**/target
