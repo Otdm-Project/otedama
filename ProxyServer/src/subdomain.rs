@@ -1,7 +1,7 @@
+use std::io::{Result, Write, Read};
+use std::net::TcpStream;
 use std::sync::Mutex;
-use std::io::{Result, Write};
-use std::fs::{OpenOptions, read_to_string};
-use std::process::Command;
+
 use once_cell::sync::Lazy;
 
 static DOMAIN: &str = "otdm.dev";
@@ -45,7 +45,7 @@ pub fn generate_subdomain() -> Result<String> {
     let full_domain = format!("{}.{}", subdomain, DOMAIN);
     println!("Generated subdomain: {}", full_domain);
 
-    Ok(full_domain) 
+    Ok(full_domain)
 }
 
 /// サブドメインを生成し、HAProxyに追加する
@@ -53,6 +53,7 @@ pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
     let subdomain = generate_subdomain()?;
     println!("subdomain:{}CvIP:{}", subdomain, client_ip);
     add_server_to_haproxy(&subdomain, client_ip)?;
+    reload_haproxy()?;
     Ok(subdomain)
 }
 
@@ -60,87 +61,37 @@ pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
 pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
     // ドメイン名内の `.` を `_` に置換
     let formatted_subdomain = subdomain.replace('.', "_");
-    let haproxy_config = "/etc/haproxy/haproxy.cfg";
+    let haproxy_ip = "haproxy_container_ip"; // HAProxyコンテナのIPアドレス
+    let haproxy_port = 9999; // TCPソケットポート
 
-    let config = read_to_string(haproxy_config)?;
+    // TCPソケット接続
+    let mut stream = TcpStream::connect((haproxy_ip, haproxy_port))?;
+    let use_backend_cmd = format!(
+        "add server backend_{subdomain} {client_ip}:80 check\n",
+        subdomain = formatted_subdomain,
+        client_ip = client_ip
+    );
 
-    // 1. frontend otdm_dev セクションを探して use_backend 行を追加
-    let frontend_name = "frontend otdm_dev";
-    let use_backend_line = format!("    use_backend {} if {{ req.hdr(host) -i {} }}", formatted_subdomain, subdomain);
+    stream.write_all(use_backend_cmd.as_bytes())?;
 
-    // frontendセクションがなければエラー
-    if !config.contains(frontend_name) {
-        eprintln!("No 'frontend otdm_dev' section found. Please define it before adding backends.");
-        return Err(std::io::Error::new(std::io::ErrorKind::NotFound, "No 'frontend otdm_dev' section found"));
-    }
+    let mut response = String::new();
+    stream.read_to_string(&mut response)?;
+    println!("HAProxy response: {}", response);
 
-    // configをVec<String>へ
-    let mut lines: Vec<String> = config.lines().map(|l| l.to_string()).collect();
+    Ok(())
+}
 
-    let mut frontend_start = None;
-    let mut frontend_end = None;
+/// HAProxyの設定を再読み込み
+pub fn reload_haproxy() -> Result<()> {
+    let haproxy_ip = "haproxy_container_ip"; // HAProxyコンテナのIPアドレス
+    let haproxy_port = 9999; // TCPソケットポート
 
-    // frontendセクションを探索
-    for (i, line) in lines.iter().enumerate() {
-        if line.trim_start().starts_with("frontend otdm_dev") {
-            frontend_start = Some(i);
-            continue;
-        }
-        if let Some(start) = frontend_start {
-            // 次のセクションの開始でfrontendセクション終了とみなす
-            if i > start && (line.trim_start().starts_with("frontend ")
-                || line.trim_start().starts_with("backend ")
-                || line.trim_start().starts_with("listen ")
-                || line.trim().is_empty()) {
-                frontend_end = Some(i);
-                break;
-            }
-        }
-    }
+    let mut stream = TcpStream::connect((haproxy_ip, haproxy_port))?;
+    stream.write_all(b"reload\n")?;
 
-    // frontend_endが見つからない場合はファイル末尾がfrontendの終わり
-    if frontend_start.is_some() && frontend_end.is_none() {
-        frontend_end = Some(lines.len());
-    }
-
-    if let (Some(start), Some(end)) = (frontend_start, frontend_end) {
-        // frontendセクション内に既存のuse_backendがないか確認
-        let existing_use_backend = lines[start..end].iter().any(|l| l.contains(use_backend_line.trim()));
-        if !existing_use_backend {
-            // frontendセクション末尾へinsert
-            lines.insert(end, use_backend_line);
-        }
-    }
-
-    // 2. 新しいbackendセクションを追加
-    let backend_header = format!("backend {}", formatted_subdomain);
-    if !lines.iter().any(|l| l.trim() == backend_header) {
-        // 末尾にbackendセクションを追加
-        lines.push("".to_string());
-        lines.push(backend_header);
-        lines.push("    mode http".to_string());
-        lines.push("    balance roundrobin".to_string());
-        let server_line = format!("    server {} {}:80 check", formatted_subdomain, client_ip);
-        lines.push(server_line);
-    }
-
-    // 修正済みconfigを書き戻し
-    let new_config = lines.join("\n") + "\n";
-    let mut file = OpenOptions::new()
-        .write(true)
-        .truncate(true)
-        .open(haproxy_config)?;
-    file.write_all(new_config.as_bytes())?;
-
-    println!("Added server and backend to HAProxy config.");
-
-    // HAProxyをリロード
-    Command::new("systemctl")
-        .arg("reload")
-        .arg("haproxy")
-        .output()?;
-
-    println!("HAProxy reloaded to apply new configuration.");
+    let mut response = String::new();
+    stream.read_to_string(&mut response)?;
+    println!("HAProxy reload response: {}", response);
 
     Ok(())
 }
