@@ -6,8 +6,12 @@ RUN dnf install -y epel-release dnf-plugins-core && \
     dnf config-manager --set-enabled crb && \
     dnf upgrade -y && \
     dnf install -y wireguard-tools \
-                   gcc clang openssl-devel libstdc++-static make \
-                   python3-pip \
+        gcc \
+        clang \
+        openssl-devel \
+        libstdc++-static \
+        make \
+        python3-pip \
     && dnf clean all
 
 # 2. Rust のインストール
