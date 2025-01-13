@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  rust-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 
+    depends_on:
+      - haproxy-container
+    network_mode: bridge
+
+  haproxy-container:
+    build:
+      context: ./haproxy
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    network_mode: bridge
