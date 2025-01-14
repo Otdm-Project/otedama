@@ -1,6 +1,4 @@
-version: '3.8'
 services:
-
   api:
     image: api:v1.0
     ports:
