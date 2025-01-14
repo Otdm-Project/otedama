@@ -1,0 +1,114 @@
+version: '3.8'
+services:
+
+  api:
+    image: api:v1.0
+    ports:
+      - 8080:8080
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.10
+    depends_on:
+      - grafana
+
+  vpn:
+    image: vpn:v1.0
+    expose:
+      - 8090
+    ports:
+      - 51820:51820/udp
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.20
+    depends_on:
+      - grafana
+
+  proxy:
+    image: proxy:v1.0
+    expose:
+      - 8100
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.30
+    depends_on:
+      - grafana
+
+  haproxy:
+    image: haproxy:2.4.28-alpine3.21
+    expose:
+      - 9999
+    ports:
+      - 443:443
+    volumes:
+      - ./proxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./proxy/server.pem:/usr/local/etc/haproxy/server.pem
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.31
+    depends_on:
+      - grafana
+
+  db:
+    image: cassandra:latest
+    expose:
+      - 9042
+    volumes:
+      - ./db/data:/var/lib/cassandra
+      - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.40
+    depends_on:
+      - grafana
+
+  cadvisor:
+    image: google/cadvisor:latest
+    expose:
+      - 8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+
+  prometheus:
+    image: prom/prometheus:latest
+    expose:
+      - 9090
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/data:/prometheus
+    networks:
+      - otdm_network
+    depends_on:
+      - cadvisor
+
+  grafana:
+    image: grafana/grafana:latest
+    expose:
+      - 3000
+    restart: unless-stopped
+    environment:
+     - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
+    volumes:
+      - ./monitoring/grafana/data:/var/lib/grafana
+    networks:
+      - otdm_network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  otdm_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.10.0/24
+
