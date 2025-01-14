@@ -58,14 +58,33 @@ pub fn generate_and_add_subdomain(client_ip: &str) -> Result<String> {
 }
 
 /// HAProxy設定ファイルにサーバエントリを追加
-pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
-    // ドメイン名内の `.` を `_` に置換
-    let formatted_subdomain = subdomain.replace('.', "_");
-    let haproxy_ip = "haproxy_container_ip"; // HAProxyコンテナのIPアドレス
-    let haproxy_port = 9999; // TCPソケットポート
+// HAProxy設定情報をまとめた構造体
+struct HAProxyConfig {
+    ip: &'static str,
+    port: u16,
+}
 
-    // TCPソケット接続
-    let mut stream = TcpStream::connect((haproxy_ip, haproxy_port))?;
+impl HAProxyConfig {
+    // 新しいHAProxyConfigを作成
+    fn new() -> Self {
+        HAProxyConfig {
+            ip: "10.0.10.31",
+            port: 9999,
+        }
+    }
+
+    // TCP接続を確立するメソッド
+    fn connect(&self) -> std::io::Result<TcpStream> {
+        TcpStream::connect((self.ip, self.port))
+    }
+}
+
+/// HAProxy設定ファイルにサーバエントリを追加
+pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> std::io::Result<()> {
+    let config = HAProxyConfig::new();
+    let formatted_subdomain = subdomain.replace('.', "_");
+
+    let mut stream = config.connect()?;
     let use_backend_cmd = format!(
         "add server backend_{subdomain} {client_ip}:80 check\n",
         subdomain = formatted_subdomain,
@@ -82,11 +101,10 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
 }
 
 /// HAProxyの設定を再読み込み
-pub fn reload_haproxy() -> Result<()> {
-    let haproxy_ip = "haproxy_container_ip"; // HAProxyコンテナのIPアドレス
-    let haproxy_port = 9999; // TCPソケットポート
+pub fn reload_haproxy() -> std::io::Result<()> {
+    let config = HAProxyConfig::new();
 
-    let mut stream = TcpStream::connect((haproxy_ip, haproxy_port))?;
+    let mut stream = config.connect()?;
     stream.write_all(b"reload\n")?;
 
     let mut response = String::new();
