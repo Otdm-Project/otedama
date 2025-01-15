@@ -1,0 +1,24 @@
+FROM rust:1.80
+
+# 必要なツールとライブラリをインストール
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    pkg-config \
+    build-essential \
+    && apt-get clean
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# Cargo.tomlとCargo.lockをコピー
+COPY Cargo.toml Cargo.lock ./
+
+# アプリケーションのソースコードをコピー
+COPY ./src ./src
+
+# リリースビルド
+RUN cargo build --release
+
+# バイナリを /usr/local/bin にコピー
+RUN cp target/release/apiserver /usr/local/bin/apiserver
+
