@@ -8,8 +8,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.10
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   vpn:
     image: vpn:v1.0
@@ -20,8 +20,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.20
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   proxy:
     image: proxy:v1.0
@@ -30,8 +30,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   haproxy:
     image: haproxy:2.4.28-alpine3.21
@@ -45,8 +45,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.31
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   db:
     image: cassandra:latest
@@ -58,8 +58,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   # cadvisor:
   #   image: google/cadvisor:latest
