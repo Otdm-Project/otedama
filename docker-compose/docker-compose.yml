@@ -71,6 +71,11 @@ services:
       - /sys:/sys:ro
       - /var/lib/docker/:/var/lib/docker:ro
       - /dev/disk/:/dev/disk:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   prometheus:
     image: prom/prometheus:latest
@@ -84,6 +89,11 @@ services:
       - otdm_network
     depends_on:
       - cadvisor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   grafana:
     image: grafana/grafana:latest
