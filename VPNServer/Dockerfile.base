@@ -1,0 +1,35 @@
+###################################
+# wireguardで使用するベースイメージ
+###################################
+# wireguard_custombaseとしてビルドしてください
+# docker build -t wireguard_custombase -f ./Dockerfile.base .
+
+
+# ベースイメージとしてUbuntuを使用
+FROM ubuntu:22.04
+
+# tzdataの対話的インストールを抑止
+ENV DEBIAN_FRONTEND=noninteractive
+
+# 必要なパッケージをインストール
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    wireguard \
+    iptables \
+    iproute2 \
+    python3 \
+    python3-pip \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# cqlshをインストール
+RUN pip3 install cqlsh
+
+# IPフォワードを有効にする設定を追加
+RUN echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-ip-forward.conf
+
+# 必要ならWireGuard用のディレクトリを作成
+RUN mkdir -p /etc/wireguard && chmod 700 /etc/wireguard
+
+# 確認用メッセージ
+CMD ["echo", "Base image ready for WireGuard!"]
