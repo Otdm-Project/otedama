@@ -61,58 +61,69 @@ services:
     depends_on:
       - grafana
 
-  cadvisor:
-    image: google/cadvisor:latest
-    expose:
-      - 8080
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # cadvisor:
+  #   image: google/cadvisor:latest
+  #   expose:
+  #     - 8080
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
-  prometheus:
-    image: prom/prometheus:latest
-    expose:
-      - 9090
-    restart: unless-stopped
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/prometheus/data:/prometheus
-    networks:
-      - otdm_network
-    depends_on:
-      - cadvisor
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9090"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
+  #   network_mode: host
+  #   pid: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - '/:/host:ro,rslave'
 
-  grafana:
-    image: grafana/grafana:latest
-    expose:
-      - 3000
-    restart: unless-stopped
-    environment:
-     - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
-    volumes:
-      - ./monitoring/grafana/data:/var/lib/grafana
-    networks:
-      - otdm_network
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   expose:
+  #     - 9090
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./monitoring/prometheus/data:/prometheus
+  #   networks:
+  #     - otdm_network
+  #   depends_on:
+  #     - cadvisor
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9090"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   expose:
+  #     - 3000
+  #   restart: unless-stopped
+  #   environment:
+  #    - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
+  #   volumes:
+  #     - ./monitoring/grafana/data:/var/lib/grafana
+  #   networks:
+  #     - otdm_network
+  #   depends_on:
+  #     - prometheus
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
 networks:
   otdm_network:
