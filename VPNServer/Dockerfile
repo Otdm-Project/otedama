@@ -1,9 +1,15 @@
 FROM vpn_baseimage:latest 
 
-WORKDIR /usr/local/bin
+# 作業ディレクトリを設定
+WORKDIR /app
 
-# Copy built binary from the builder stage
-COPY --from=vpn_baseimage:latest /usr/local/bin/vpnserver /usr/local/bin/vpnserver
+# 事前に構築されたバイナリをコンテナにコピー
+COPY vpnserver /usr/local/bin/vpnserver
 
-# Set the default command to execute the binary
-CMD ["./vpnserver"]
+# WireGuard設定ファイルをコピー
+COPY ./src/wg0.conf /etc/wireguard/wg0.conf
+
+# エントリーポイントを直接CMDで指定
+CMD sysctl -w net.ipv4.ip_forward=1 && \
+    wg-quick up /etc/wireguard/wg0.conf && \
+    ./vpnserver
