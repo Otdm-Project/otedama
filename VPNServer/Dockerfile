@@ -1,38 +1,16 @@
-# AlmaLinux 9をベースイメージとする
-FROM almalinux:9
+# ベースイメージとしてカスタムイメージを使用
+FROM wireguard_custombase
 
-# 1. dnf-plugins-core で CRBリポジトリを有効化し、必要パッケージをインストール
-RUN dnf install -y epel-release dnf-plugins-core && \
-    dnf config-manager --set-enabled crb && \
-    dnf upgrade -y && \
-    dnf install -y wireguard-tools \
-        gcc \
-        clang \
-        openssl-devel \
-        libstdc++-static \
-        make \
-        python3-pip \
-    && dnf clean all
-
-# 2. Rust のインストール
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-# cargo, rustc などをパスに通す
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# 3. cqlsh のインストール
-RUN python3 -m pip install --no-cache-dir cqlsh
-
-# 4. 作業ディレクトリを作成・移動
+# 作業ディレクトリを設定
 WORKDIR /app
 
-# 5. ソースコードをコンテナへコピー
-COPY . .
+# 事前に構築されたバイナリをコンテナにコピー
+COPY vpnserver /usr/local/bin/vpnserver
 
-# 6. Rust プロジェクトをビルド (リリースビルド)
-RUN cargo build --release
+# WireGuard設定ファイルをコピー
+COPY ./src/wg0.conf /etc/wireguard/wg0.conf
 
-# 7. ポート開放 (WebSocket用など)
-EXPOSE 8090
-
-# 8. コンテナ起動時に実行するコマンド
-CMD ["./target/release/vpnserver"]
+# エントリーポイントを直接CMDで指定
+CMD sysctl -w net.ipv4.ip_forward=1 && \
+    wg-quick up /etc/wireguard/wg0.conf && \
+    ./vpnserver
