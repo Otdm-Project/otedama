@@ -1,35 +1,33 @@
-###################################
-# wireguardで使用するベースイメージ
-###################################
-# wireguard_custombaseとしてビルドしてください
-# docker build -t wireguard_custombase -f ./Dockerfile.base .
+FROM almalinux:9
 
+# Enable CRB repository and install required packages
+RUN dnf install -y epel-release dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf upgrade -y && \
+    dnf install -y wireguard-tools \
+        gcc \
+        clang \
+        openssl-devel \
+        libstdc++-static \
+        make \
+        python3-pip \
+    && dnf clean all \
+    && pip install --no-cache-dir cqlsh \
+    &&  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
-# ベースイメージとしてUbuntuを使用
-FROM ubuntu:22.04
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-# tzdataの対話的インストールを抑止
-ENV DEBIAN_FRONTEND=noninteractive
+# 作業ディレクトリを設定
+WORKDIR /app
 
-# 必要なパッケージをインストール
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    wireguard \
-    iptables \
-    iproute2 \
-    python3 \
-    python3-pip \
-    ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+# Cargo.tomlとCargo.lockをコピー
+COPY Cargo.toml Cargo.lock ./
 
-# cqlshをインストール
-RUN pip3 install cqlsh
+# アプリケーションのソースコードをコピー
+COPY ./src ./src
 
-# IPフォワードを有効にする設定を追加
-RUN echo "net.ipv4.ip_forward=1" > /etc/sysctl.d/99-ip-forward.conf
+# リリースビルド
+RUN cargo build --release
 
-# 必要ならWireGuard用のディレクトリを作成
-RUN mkdir -p /etc/wireguard && chmod 700 /etc/wireguard
-
-# 確認用メッセージ
-CMD ["echo", "Base image ready for WireGuard!"]
+# バイナリを /usr/local/bin にコピー
+RUN cp target/release/vpnserver /usr/local/bin/vpnserver

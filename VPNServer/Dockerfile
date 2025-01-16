@@ -1,5 +1,4 @@
-# ベースイメージとしてカスタムイメージを使用
-FROM wireguard_custombase
+FROM vpn_baseimage:latest 
 
 # 作業ディレクトリを設定
 WORKDIR /app

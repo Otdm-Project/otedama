@@ -8,8 +8,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.10
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   vpn:
     image: vpn:v1.0
@@ -20,8 +20,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.20
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   proxy:
     image: proxy:v1.0
@@ -30,8 +30,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   haproxy:
     image: haproxy:2.4.28-alpine3.21
@@ -45,8 +45,8 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.31
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
   db:
     image: cassandra:latest
@@ -58,51 +58,72 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40
-    depends_on:
-      - grafana
+  #  depends_on:
+  #    - grafana
 
-  cadvisor:
-    image: google/cadvisor:latest
-    expose:
-      - 8080
-    volumes:
-      - /:/rootfs:ro
-      - /var/run:/var/run:rw
-      - /sys:/sys:ro
-      - /var/lib/docker/:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
+  # cadvisor:
+  #   image: google/cadvisor:latest
+  #   expose:
+  #     - 8080
+  #   volumes:
+  #     - /:/rootfs:ro
+  #     - /var/run:/var/run:rw
+  #     - /sys:/sys:ro
+  #     - /var/lib/docker/:/var/lib/docker:ro
+  #     - /dev/disk/:/dev/disk:ro
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
-  prometheus:
-    image: prom/prometheus:latest
-    expose:
-      - 9090
-    restart: unless-stopped
-    volumes:
-      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/prometheus/data:/prometheus
-    networks:
-      - otdm_network
-    depends_on:
-      - cadvisor
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
+  #   network_mode: host
+  #   pid: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - '/:/host:ro,rslave'
 
-  grafana:
-    image: grafana/grafana:latest
-    expose:
-      - 3000
-    restart: unless-stopped
-    environment:
-     - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
-    volumes:
-      - ./monitoring/grafana/data:/var/lib/grafana
-    networks:
-      - otdm_network
-    depends_on:
-      - prometheus
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   expose:
+  #     - 9090
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - ./monitoring/prometheus/data:/prometheus
+  #   networks:
+  #     - otdm_network
+  #   depends_on:
+  #     - cadvisor
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9090"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   expose:
+  #     - 3000
+  #   restart: unless-stopped
+  #   environment:
+  #    - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
+  #   volumes:
+  #     - ./monitoring/grafana/data:/var/lib/grafana
+  #   networks:
+  #     - otdm_network
+  #   depends_on:
+  #     - prometheus
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
 
 networks:
   otdm_network:
