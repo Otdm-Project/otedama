@@ -1,15 +1,3 @@
-<<<<<<< HEAD
-FROM rust:1.80 AS builder
-
-# 必要なパッケージのインストール
-RUN apt-get update && apt-get install -y \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# 作業ディレクトリ
-=======
 FROM rust:1.80
 
 # 必要なツールとライブラリをインストール
@@ -20,23 +8,11 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean
 
 # 作業ディレクトリを設定
->>>>>>> otdm-container
 WORKDIR /app
 
 # Cargo.tomlとCargo.lockをコピー
 COPY Cargo.toml Cargo.lock ./
 
-<<<<<<< HEAD
-# 依存関係をキャッシュ
-RUN cargo fetch
-
-# ソースコードをコピー
-# ここでは「プロジェクトのルートディレクトリ」にある src/* と monitoring.rs をまとめてコピーしています。
-COPY . .
-
-# リリースビルド
-RUN cargo build --release
-=======
 # アプリケーションのソースコードをコピー
 COPY ./src ./src
 
@@ -46,4 +22,3 @@ RUN cargo build --release
 # バイナリを /usr/local/bin にコピー
 RUN cp target/release/apiserver /usr/local/bin/apiserver
 
->>>>>>> otdm-container
