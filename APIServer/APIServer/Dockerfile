@@ -1,34 +1,3 @@
-# =======================
-# ビルドステージ
-# =======================
-FROM rust:1.80 AS builder
-
-# 必要なパッケージのインストール
-RUN apt-get update && apt-get install -y \
-    cmake \
-    pkg-config \
-    libssl-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# 作業ディレクトリ
-WORKDIR /app
-
-# Cargo.tomlとCargo.lockをコピー
-COPY Cargo.toml Cargo.lock ./
-
-# 依存関係をキャッシュ
-RUN cargo fetch
-
-# ソースコードをコピー
-# ここでは「プロジェクトのルートディレクトリ」にある src/* と monitoring.rs をまとめてコピーしています。
-COPY . .
-
-# リリースビルド
-RUN cargo build --release
-
-# =======================
-# ランタイムステージ
-# =======================
 FROM almalinux:9
 
 # 必要なパッケージのインストール
