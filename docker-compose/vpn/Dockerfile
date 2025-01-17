@@ -1,15 +1,21 @@
-FROM vpn_baseimage:latest
+FROM vpn_baseimage:latest 
 
 # 作業ディレクトリを設定
 WORKDIR /app
 
 # 事前に構築されたバイナリをコンテナにコピー
-COPY vpnserver /usr/local/bin/vpnserver
+COPY --from=vpn_baseimage:latest /usr/local/bin/vpnserver /usr/local/bin/vpnserver
 
 # WireGuard設定ファイルをコピー
 COPY ./src/wg0.conf /etc/wireguard/wg0.conf
 
-# エントリーポイントを直接CMDで指定
-CMD sysctl -w net.ipv4.ip_forward=1 && \
-    wg-quick up /etc/wireguard/wg0.conf && \
-    ./vpnserver
+# 起動スクリプトをコピー
+COPY ./start.sh /app/start.sh
+
+# スクリプトに実行権限を付与
+RUN chmod +x /app/start.sh
+
+# エントリーポイントをスクリプトに設定
+CMD ["/app/start.sh"]
+
+ENTRYPOINT ["/usr/bin/tini", "--"]
