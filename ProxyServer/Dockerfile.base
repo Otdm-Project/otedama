@@ -5,7 +5,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     pkg-config \
     build-essential \
-    && apt-get clean 
+    && apt-get clean \
+    mkdir -p /var/lib/haproxy && chmod 755 /var/lib/haproxy
 # 作業ディレクトリを設定
 WORKDIR /app
 
@@ -16,7 +17,6 @@ COPY Cargo.toml Cargo.lock ./
 COPY ./src ./src
 
 # リリースビルド
-RUN cargo build --release
-
+RUN cargo build --release && \
 # バイナリを /usr/local/bin にコピー
-RUN cp target/release/proxyserver /usr/local/bin/proxyserver
+    cp target/release/proxyserver /usr/local/bin/proxyserver
