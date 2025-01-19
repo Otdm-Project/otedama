@@ -29,7 +29,7 @@ commitlog_segment_size: 32MiB
 seed_provider:
   - class_name: org.apache.cassandra.locator.SimpleSeedProvider
     parameters:
-      - seeds: "54.65.115.124:7000"
+      - seeds: "10.0.10.40:7000"
 concurrent_reads: 32
 concurrent_writes: 32
 concurrent_counter_writes: 32
@@ -48,13 +48,13 @@ trickle_fsync: false
 trickle_fsync_interval: 10240KiB
 storage_port: 7000
 ssl_storage_port: 7001
-listen_address: 0.0.0.0
-broadcast_address: 54.65.115.124
+listen_address: 10.0.10.40
+broadcast_address: 10.0.10.40
 start_native_transport: true
 native_transport_port: 9042
 native_transport_allow_older_protocols: true
 rpc_address: 0.0.0.0
-broadcast_rpc_address: 54.65.115.124
+broadcast_rpc_address: 10.0.10.40
 rpc_keepalive: true
 saved_caches_directory: /var/lib/cassandra/saved_caches
 tombstone_warn_threshold: 1000
