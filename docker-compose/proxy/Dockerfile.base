@@ -1,12 +1,13 @@
 FROM rust:1.80
 
 # 必要なツールとライブラリをインストール
-RUN apt-get update && apt-get install -y \
-    libssl-dev \
-    pkg-config \
-    build-essential \
-    && apt-get clean \
-    mkdir -p /var/lib/haproxy && chmod 755 /var/lib/haproxy
+RUN apt update \ 
+    && apt install -y \
+        libssl-dev \
+        pkg-config \
+        build-essential \
+    && apt clean \
+    && mkdir -p /var/lib/haproxy && chmod 755 /var/lib/haproxy
 # 作業ディレクトリを設定
 WORKDIR /app
 
