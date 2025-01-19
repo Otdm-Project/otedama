@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Cargo.tomlとCargo.lockをコピー
-COPY Cargo.toml Cargo.lock ./
+COPY Cargo.toml ./
 
 # ソースコードをコピー
 COPY ./src ./src
