@@ -17,5 +17,3 @@ RUN chmod +x /app/start.sh
 
 # エントリーポイントをスクリプトに設定
 CMD ["/app/start.sh"]
-
-ENTRYPOINT ["/usr/bin/tini", "--"]
