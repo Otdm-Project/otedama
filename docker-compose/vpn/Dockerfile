@@ -16,4 +16,4 @@ COPY ./start.sh ./start.sh
 RUN chmod +x ./start.sh
 
 # エントリーポイントをスクリプトに設定
-CMD ["/app/start.sh"]
+CMD ["./start.sh"]
