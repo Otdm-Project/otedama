@@ -1,17 +1,17 @@
 # このファイルを実行する前にすべき事
 # 先にビルドしておくものはこれに記載されたイメージ名で作成する
 services:
-  api:
-    build:
-      context: ./api
-      dockerfile: ./Dockerfile
-    user: "1000:1000"
+#  api:
+#    build:
+#      context: ./api
+#      dockerfile: ./Dockerfile
+#    user: "1000:1000"
 
-  vpn:
-    build:
-      context: ./vpn
-      dockerfile: ./Dockerfile
-    user: "1000:1000"
+#  vpn:
+#   build:
+#      context: ./vpn
+#      dockerfile: ./Dockerfile
+#    user: "1000:1000"
 
   proxy:
     build:
