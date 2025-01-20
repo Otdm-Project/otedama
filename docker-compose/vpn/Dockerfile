@@ -10,10 +10,10 @@ COPY --from=vpn_baseimage:latest /usr/local/bin/vpnserver /usr/local/bin/vpnserv
 COPY ./src/wg0.conf /etc/wireguard/wg0.conf
 
 # 起動スクリプトをコピー
-COPY ./start.sh /app/start.sh
+COPY ./start.sh ./start.sh
 
 # スクリプトに実行権限を付与
-RUN chmod +x /app/start.sh
+RUN chmod +x ./start.sh
 
 # エントリーポイントをスクリプトに設定
 CMD ["/app/start.sh"]
