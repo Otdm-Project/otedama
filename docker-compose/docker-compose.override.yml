@@ -7,10 +7,10 @@ services:
 #   dockerfile: ./Dockerfile
 #    user: "1000:1000"
 
-  vpn:
-    build:
-      context: ./vpn
-      dockerfile: ./Dockerfile
+#  vpn:
+#    build:
+#      context: ./vpn
+#      dockerfile: ./Dockerfile
 #    user: "1000:1000"
 #↑一般ユーザだと動作しない↑VPNAServerは特権での実行で問題が無いため削除
 
