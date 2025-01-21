@@ -10,15 +10,15 @@ services:
 #        ipv4_address: 10.0.10.10
   #  depends_on:
   #    - grafana
-  vpn:
-    image: vpn:v1.0
-    expose:
-      - 8090
-    ports:
-      - 51820:51820/udp
-    networks:
-      otdm_network:
-        ipv4_address: 10.0.10.20
+#  vpn:
+#    image: vpn:v1.0
+#    expose:
+#      - 8090
+#    ports:
+#      - 51820:51820/udp
+#    networks:
+#      otdm_network:
+#        ipv4_address: 10.0.10.20
   #  depends_on:
   #    - grafana
 
