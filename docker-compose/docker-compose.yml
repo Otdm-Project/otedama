@@ -10,7 +10,6 @@ services:
 #        ipv4_address: 10.0.10.10
   #  depends_on:
   #    - grafana
-
   vpn:
     image: vpn:v1.0
     expose:
@@ -20,7 +19,6 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.20
-    privileged: true # ネットワーク管理権限を追加
   #  depends_on:
   #    - grafana
 
