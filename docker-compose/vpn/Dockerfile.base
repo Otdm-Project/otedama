@@ -11,6 +11,7 @@ RUN dnf install -y epel-release dnf-plugins-core && \
         libstdc++-static \
         make \
         python3-pip \
+        iproute \
     && dnf clean all \
     && pip install --no-cache-dir cqlsh \
     &&  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
@@ -30,4 +31,4 @@ COPY ./src ./src
 RUN cargo build --release
 
 # バイナリを /usr/local/bin にコピー
-RUN cp target/release/vpnserver /usr/local/bin/vpnserver
+RUN cp ./target/release/vpnserver /usr/local/bin/vpnserver
