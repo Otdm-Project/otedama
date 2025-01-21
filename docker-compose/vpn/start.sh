@@ -6,4 +6,4 @@ sysctl -w net.ipv4.ip_forward=1
 wg-quick up /etc/wireguard/wg0.conf
 
 # VPNサーバを起動
-exec ./vpnserver
+exec /usr/local/bin/vpnserver
