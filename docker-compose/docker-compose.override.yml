@@ -3,18 +3,18 @@
 services:
 #  api:
 #    build:
-#      context: ./api
-#      dockerfile: ./Dockerfile
+#    context: ./api
+#   dockerfile: ./Dockerfile
 #    user: "1000:1000"
 
-#  vpn:
-#   build:
-#      context: ./vpn
-#      dockerfile: ./Dockerfile
-#    user: "1000:1000"
-
-  proxy:
+  vpn:
     build:
-      context: ./proxy
+      context: ./vpn
       dockerfile: ./Dockerfile
-    user: "1000:1000"
+#    user: "1000:1000"
+
+#  proxy:
+#    build:
+#      context: ./proxy
+#      dockerfile: ./Dockerfile
+#    user: "1000:1000"

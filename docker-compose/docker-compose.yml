@@ -11,40 +11,41 @@ services:
   #  depends_on:
   #    - grafana
 
-#  vpn:
-#    image: vpn:v1.0
+  vpn:
+    image: vpn:v1.0
+    expose:
+      - 8090
+    ports:
+      - 51820:51820/udp
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.20
+    privileged: true # ネットワーク管理権限を追加
+  #  depends_on:
+  #    - grafana
+
+#  proxy:
+#    image: proxy:v1.0
 #    expose:
-#      - 8090
-#    ports:
-#      - 51820:51820/udp
+#      - 8100
 #    networks:
 #      otdm_network:
-#        ipv4_address: 10.0.10.20
+#        ipv4_address: 10.0.10.30
   #  depends_on:
   #    - grafana
 
-  proxy:
-    image: proxy:v1.0
-    expose:
-      - 8100
-    networks:
-      otdm_network:
-        ipv4_address: 10.0.10.30
-  #  depends_on:
-  #    - grafana
-
-  haproxy:
-    image: haproxy:2.4.28
-    expose:
-      - 9999
-    ports:
-      - 443:443
-    volumes:
-      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./haproxy/server.pem:/usr/local/etc/haproxy/server.pem
-    networks:
-      otdm_network:
-        ipv4_address: 10.0.10.31
+#  haproxy:
+#    image: haproxy:2.4.28
+#    expose:
+#      - 9999
+#    ports:
+#      - 443:443
+#    volumes:
+#      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+#      - ./haproxy/server.pem:/usr/local/etc/haproxy/server.pem
+#    networks:
+#      otdm_network:
+#        ipv4_address: 10.0.10.31
   #  depends_on:
   #    - grafana
 
