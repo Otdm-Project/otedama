@@ -12,6 +12,7 @@ services:
       context: ./vpn
       dockerfile: ./Dockerfile
 #    user: "1000:1000"
+#↑一般ユーザだと動作しない↑VPNAServerは特権での実行で問題が無いため削除
 
 #  proxy:
 #    build:
