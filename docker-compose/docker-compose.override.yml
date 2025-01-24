@@ -2,22 +2,22 @@
 # 先にビルドしておくものはこれに記載されたイメージ名で作成する
 # テスト時に実行サービスがない場合エラーになるのでコメントアウトする
 
-# services:
-#  api:
-#    build:
-#    context: ./api
-#   dockerfile: ./Dockerfile
-#    user: "1000:1000"
+services:
+  api:
+   build:
+   context: ./api
+  dockerfile: ./Dockerfile
+  user: "1000:1000"
 
-#  vpn:
-#    build:
-#      context: ./vpn
-#      dockerfile: ./Dockerfile
+  vpn:
+    build:
+      context: ./vpn
+      dockerfile: ./Dockerfile
 #    user: "1000:1000"
 #↑一般ユーザだと動作しない↑VPNAServerは特権での実行で問題が無いため削除
 
-#  proxy:
-#    build:
-#      context: ./proxy
-#      dockerfile: ./Dockerfile
-#    user: "1000:1000"
+  proxy:
+    build:
+      context: ./proxy
+      dockerfile: ./Dockerfile
+    user: "1000:1000"
