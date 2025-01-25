@@ -21,3 +21,8 @@ services:
       context: ./proxy
       dockerfile: ./Dockerfile
     user: "1000:1000"
+  
+  haproxy:
+    build:
+      context: ./haproxy
+    user: "1000:1000"
