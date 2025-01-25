@@ -44,3 +44,7 @@ git switch otdm-container
 ```
 
 ## コンテナのbuild
+```bash
+cd docker-compose/
+docker compose build --no-cache
+```
