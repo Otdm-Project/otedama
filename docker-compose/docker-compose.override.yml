@@ -4,10 +4,10 @@
 
 services:
   api:
-   build:
-   context: ./api
-  dockerfile: ./Dockerfile
-  user: "1000:1000"
+    build: 
+      context: ./api
+      dockerfile: ./Dockerfile
+    user: "1000:1000"
 
   vpn:
     build:
