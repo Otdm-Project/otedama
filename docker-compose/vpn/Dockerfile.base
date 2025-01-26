@@ -19,10 +19,10 @@ RUN dnf install -y epel-release dnf-plugins-core && \
 ENV PATH="/root/.cargo/bin:${PATH}"
 
 # 作業ディレクトリを設定
-WORKDIR /app
+WORKDIR /home/ubuntu/otedama/docker-compose/vpn/app
 
 # Cargo.tomlとCargo.lockをコピー
-COPY Cargo.toml ./
+COPY ./Cargo.toml ./
 
 # アプリケーションのソースコードをコピー
 COPY ./src ./src
