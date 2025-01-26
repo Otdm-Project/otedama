@@ -1,16 +1,13 @@
 FROM vpn_baseimage:latest 
 
 # 作業ディレクトリを設定
-WORKDIR /app
-
-# 事前に構築されたバイナリをコンテナにコピー
-# COPY /usr/local/bin/vpnserver .
+WORKDIR /home/ubuntu/otedama/docker-compose/vpn/app
 
 # WireGuard設定ファイルをコピー
-COPY ./src/wg0.conf /etc/wireguard/wg0.conf
+#COPY /home/ubuntu/otedama/docker-compose/vpn/wg0.conf /etc/wireguard/wg0.conf
 
 # 起動スクリプトをコピー
-COPY ./start.sh ./start.sh
+#COPY /home/ubuntu/otedama/docker-compose/vpn/start.sh ./start.sh
 
 # スクリプトに実行権限を付与
 RUN chmod +x ./start.sh
