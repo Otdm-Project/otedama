@@ -27,8 +27,9 @@ cd ~/proxyserver
 # 自分の端末で実行する場合には cd ~/otedama/VPNServer
 ```
 # ベースイメージの構築
-#docker build --no-cache -f Dockerfile.base -t proxy_baseimage:latest .
+docker build --no-cache -f Dockerfile.base -t proxy_baseimage:latest .
 # ↑1/20 廃止しました
+# ↑1/27 廃止するとDockercomposeのエラーの時に毎回ビルドが入って遅いので再度作成
 # 本番イメージの構築
 docker build --no-cache -f Dockerfile -t proxy:v1.0 .
 ```
