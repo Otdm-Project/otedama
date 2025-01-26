@@ -10,7 +10,7 @@ WORKDIR /home/ubuntu/otedama/docker-compose/vpn/app
 #COPY /home/ubuntu/otedama/docker-compose/vpn/start.sh ./start.sh
 
 # スクリプトに実行権限を付与
-RUN chmod +x ./start.sh
+# RUN chmod +x ./start.sh
 
 # エントリーポイントをスクリプトに設定
 CMD ["./start.sh"]
