@@ -1,5 +1,8 @@
 **/Cargo.lock
-**/target
+**/target/release/*
+**/target/debug/
+**/target/.rustc_info.json
+**/target/CACHEDIR.TAG
 !**/target/release/apiserver
 !**/target/release/vpnserver
 !**/target/release/proxyserver
