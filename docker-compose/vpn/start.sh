@@ -6,4 +6,4 @@
 wg-quick up /etc/wireguard/wg0.conf
 
 # VPNサーバを起動
-exec /usr/local/bin/vpnserver
+exec ./vpnserver
