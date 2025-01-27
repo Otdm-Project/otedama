@@ -19,7 +19,14 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.20
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    security_opt:
+      - seccomp:unconfined
     volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules
       - /home/ubuntu/otedama/docker-compose/vpn/wg0.conf:/etc/wireguard/wg0.conf
       - /home/ubuntu/otedama/docker-compose/vpn/start.sh:/home/ubuntu/otedama/docker-compose/vpn/app/start.sh
   #  depends_on:
