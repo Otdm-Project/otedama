@@ -1,24 +1,23 @@
-FROM rust:1.80
+FROM almalinux:9.5
 
-# 必要なツールとライブラリをインストール
-RUN apt-get update && apt-get install -y \
-    libssl-dev \
-    pkg-config \
-    build-essential \
-    && apt-get clean
+# 必要なツールをインストール
+RUN dnf update -y \
+    dnf install -y \
+        gcc \ 
+        openssl-devel \ 
+        dnf install -y pkgconfig 
+RUN dnf install -y python3-pip 
+# Rustのインストール
+RUN dnf clean all 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && echo 'source $HOME/.cargo/env' >> /etc/profile \ 
+    && source /root/.cargo/env
 
-# 作業ディレクトリを設定
-WORKDIR /app
+# Pythonパッケージcqlshをインストール
+RUN pip install cqlsh
 
-# Cargo.tomlとCargo.lockをコピー
-COPY ./Cargo.toml ./
+# Rust環境のパスを設定
+ENV PATH="/root/.cargo/bin:${PATH}"
 
-# アプリケーションのソースコードをコピー
-COPY ./src ./src
-
-# リリースビルド
-RUN cargo build --release
-
-# バイナリを /usr/local/bin にコピー
-RUN cp target/release/apiserver /usr/local/bin/apiserver
-
+# バイナリをコピー
+COPY ./target/release/apiserver ./apiserver
