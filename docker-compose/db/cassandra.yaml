@@ -52,7 +52,7 @@ listen_address: 10.0.10.40
 broadcast_address: 10.0.10.40
 start_native_transport: true
 native_transport_port: 9042
-native_transport_allow_older_protocols: true
+# native_transport_allow_older_protocols: true
 rpc_address: 0.0.0.0
 broadcast_rpc_address: 10.0.10.40
 rpc_keepalive: true
@@ -61,8 +61,8 @@ tombstone_warn_threshold: 1000
 tombstone_failure_threshold: 100000
 batch_size_warn_threshold: 5KiB
 batch_size_fail_threshold: 50KiB
-compaction_large_partition_warning_threshold: 100MiB
-compaction_tombstone_warning_threshold: 100000
+partition_size_warn_threshold: 100MiB
+# compaction_tombstone_warning_threshold: 100000
 read_request_timeout: 5000ms
 range_request_timeout: 10000ms
 write_request_timeout: 2000ms
@@ -90,7 +90,7 @@ inter_dc_tcp_nodelay: false
 trace_type_query_ttl: 1d
 trace_type_repair_ttl: 7d
 user_defined_functions_enabled: false
-scripted_user_defined_functions_enabled: false
+# scripted_user_defined_functions_enabled: false
 transparent_data_encryption_options:
   enabled: false
   chunk_length_kb: 64
