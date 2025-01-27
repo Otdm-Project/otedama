@@ -12,6 +12,7 @@ RUN dnf install -y epel-release dnf-plugins-core && \
         make \
         python3-pip \
         iproute \
+        iptables \ 
     && dnf clean all \
     && pip install --no-cache-dir cqlsh \
     &&  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
