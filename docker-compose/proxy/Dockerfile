@@ -18,13 +18,13 @@ FROM rust:1.80
 WORKDIR /app
 
 # Cargo.tomlをコピー
-COPY Cargo.toml ./
+COPY ./Cargo.toml ./Cargo.toml
 
 # ソースコードをコピー
 COPY ./src ./src
 # リリースビルド
 RUN cargo build --release 
 
-RUN cp ./target/release/vpnserver /usr/local/bin/vpnserver
+RUN cp target/release/proxyserver /usr/local/bin/proxyserver
 # すでにビルドは完了しているはずなのでバイナリを実行
-CMD ["/usr/local/bin/vpnserver"]
+CMD ["/usr/local/bin/proxyserver"]
