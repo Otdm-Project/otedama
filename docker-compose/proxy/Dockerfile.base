@@ -1,0 +1,23 @@
+FROM almalinux:9.5
+
+# 必要なツールをインストール
+RUN dnf update -y \
+    dnf install -y \
+        gcc \ 
+        openssl-devel \ 
+        dnf install -y pkgconfig 
+RUN dnf install -y python3-pip 
+# Rustのインストール
+RUN dnf clean all 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && echo 'source $HOME/.cargo/env' >> /etc/profile \ 
+    && source /root/.cargo/env
+
+# Pythonパッケージcqlshをインストール
+RUN pip install cqlsh
+
+# Rust環境のパスを設定
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# バイナリをコピー
+COPY ./target/release/proxyserver ./proxyserver
