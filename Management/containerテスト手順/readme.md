@@ -31,8 +31,8 @@ newgrp docker
 - git インストール
 
 ```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y git
+  sudo apt update && sudo apt upgrade -y
+  sudo apt install -y git
 ```
 
 - サーバリポジトリを持ってくる

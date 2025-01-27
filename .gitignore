@@ -1,4 +1,7 @@
 **/Cargo.lock
 **/target
+!**/target/release/apiserver
+!**/target/release/vpnserver
+!**/target/release/proxyserver
 **/data
 .vscode
