@@ -22,5 +22,3 @@ ENV PATH="/root/.cargo/bin:${PATH}"
 # 作業ディレクトリを設定
 WORKDIR /app
 
-# バイナリをコピー
-COPY ./target/release/vpnserver ./vpnserver

@@ -19,5 +19,3 @@ RUN pip install cqlsh
 # Rust環境のパスを設定
 ENV PATH="/root/.cargo/bin:${PATH}"
 
-# バイナリをコピー
-COPY ./target/release/proxyserver ./proxyserver
