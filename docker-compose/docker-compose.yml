@@ -41,7 +41,8 @@ services:
         ipv4_address: 10.0.10.30
   #  depends_on:
   #    - grafana
-
+  
+  #↓設定に問題がなければ自動起動するのでその設定の必要無し 
   haproxy:
     image: haproxy:2.4.28
     expose:
