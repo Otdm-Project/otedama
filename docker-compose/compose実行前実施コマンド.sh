@@ -38,11 +38,17 @@ docker build --no-cache -f Dockerfile -t proxy:v1.0 .
 ``` 
 docker ps 
 ```
-これらの停止+削除コマンド
+これらの停止+コンテナ削除コマンド
 ```
 docker stop $(docker ps -a -q) && docker rm $(docker ps -aq)
+```
+Dockerイメージ削除コマンド
+```
+docker rmi $(docker images -q)
 ```
 
 docker compose build --no-cache
 
 docker compose up
+
+Dockerfile更改要件に適用するよう変更
