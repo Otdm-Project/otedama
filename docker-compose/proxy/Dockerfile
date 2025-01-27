@@ -25,5 +25,6 @@ COPY ./src ./src
 # リリースビルド
 RUN cargo build --release 
 
+RUN cp ./target/release/vpnserver /usr/local/bin/vpnserver
 # すでにビルドは完了しているはずなのでバイナリを実行
-CMD ["./target/release/proxyserver"]
+CMD ["/usr/local/bin/vpnserver"]
