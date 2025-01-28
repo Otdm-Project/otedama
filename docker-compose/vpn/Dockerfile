@@ -6,6 +6,12 @@ WORKDIR /app
 # WireGuard設定ファイルをコピー
 #COPY /home/ubuntu/otedama/docker-compose/vpn/wg0.conf /etc/wireguard/wg0.conf
 
+# WireGuardの秘密鍵をコピー
+COPY ./privatekey /etc/wireguard/privatekey
+
+# 適切な権限を設定
+RUN chown root:root /etc/wireguard/privatekey && chmod 600 /etc/wireguard/privatekey
+
 # 起動スクリプトをコピー
 COPY ./start.sh ./start.sh
 
