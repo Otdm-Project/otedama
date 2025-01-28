@@ -19,8 +19,7 @@ pub fn initialize_wg_config() {
 // WireGuardにPeerを動的に追加し、wg0.confに追記
 pub fn add_peer_to_wireguard(public_key: &str, client_ip: &str) -> Result<()> {
     // Peerを動的に追加
-    let output = Command::new("sudo")
-        .arg("wg")
+    let output = Command::new("wg")
         .arg("set")
         .arg("wg0")
         .arg("peer")
