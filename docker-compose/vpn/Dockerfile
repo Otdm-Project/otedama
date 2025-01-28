@@ -19,6 +19,9 @@ COPY ./wg0.conf /etc/wireguard/wg0.conf
 # WireGuardの秘密鍵をコピー
 COPY ./privatekey /etc/wireguard/privatekey
 
+# VPNServerのバイナリをコピー(start.shで使用)
+COPY ./target/release/vpnserver ./vpnserver
+
 
 # スクリプトに実行権限を付与
 RUN chown root:root ./start.sh && chmod +x ./start.sh
