@@ -10,9 +10,6 @@ RUN mkdir -p /etc/wireguard && \
     chmod 700 /etc/wireguard && \
     chown root:root /etc/wireguard
 
-# 適切な権限を設定
-RUN chown root:root /etc/wireguard/privatekey && chmod 600 /etc/wireguard/privatekey
-
 # 起動スクリプトをコピー
 COPY ./start.sh ./start.sh
 
