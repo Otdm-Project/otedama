@@ -157,7 +157,7 @@ pub fn add_server_to_haproxy(subdomain: &str, client_ip: &str) -> Result<()> {
 pub fn reload_haproxy() -> Result<()> {
     // HAProxyを再読み込みするdocker execコマンド
     // docker-composeでのサービス名が "haproxy" であることを確認してください
-    let reload_command = "docker-compose-haproxy-1 -f /usr/local/etc/haproxy/haproxy.cfg -sf $(pidof haproxy)";
+    let reload_command = "haproxy -f /usr/local/etc/haproxy/haproxy.cfg -sf $(pidof haproxy)";
 
     let output = Command::new("docker")
         .arg("exec")
