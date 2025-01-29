@@ -39,7 +39,7 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
-      - /tmp/haproxy.sock:/tmp/haproxy.sock 
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
