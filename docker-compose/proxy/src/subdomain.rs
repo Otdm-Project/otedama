@@ -161,7 +161,7 @@ pub fn reload_haproxy() -> Result<()> {
 
     let output = Command::new("docker")
         .arg("exec")
-        .arg("haproxy") // docker-composeでのサービス名
+        .arg("docker-compose-haproxy-1") // docker-composeでのサービス名
         .arg("sh")
         .arg("-c")
         .arg(reload_command)
