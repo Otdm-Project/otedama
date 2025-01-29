@@ -36,6 +36,10 @@ services:
     image: proxy:v1.0
     expose:
       - 8100
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - ./haproxy/server.pem:/etc/haproxy/server.pem
+      - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
@@ -44,14 +48,15 @@ services:
   
   #↓設定に問題がなければ自動起動するのでその設定の必要無し 
   haproxy:
-    image: haproxy:2.4.28
+    image: haproxy:2.8
     expose:
       - 9999
     ports:
       - 443:443
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./haproxy/server.pem:/usr/local/etc/haproxy/server.pem
+      - ./haproxy/server.pem:/etc/haproxy/server.pem
+      - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
       otdm_network:
         ipv4_address: 10.0.10.31
@@ -64,6 +69,7 @@ services:
     volumes:
       - ./db/data:/var/lib/cassandra
       - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
+      - /var/run/haproxy.sock:/var/run/haproxy.sock 
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40

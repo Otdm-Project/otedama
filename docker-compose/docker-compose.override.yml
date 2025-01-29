@@ -24,5 +24,5 @@ services:
       dockerfile: ./Dockerfile
     user: "1000:1000"
 
-  haproxy:
-    user: "1000:1000"
+  #haproxy:
+  #  user: "1000:1000"
