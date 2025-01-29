@@ -56,7 +56,7 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
-
+      - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
       otdm_network:
