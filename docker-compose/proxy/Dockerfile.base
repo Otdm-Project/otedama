@@ -15,8 +15,6 @@ RUN dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 # Pythonパッケージcqlshをインストール
 RUN pip install cqlsh
 
-# プロキシ用ルート設定
-RUN --cap-add=NET_ADMIN ip route add 100.64.0.0/10 via 100.64.0.1 dev eth0
 
 # Rust環境のパスを設定
 ENV PATH="/root/.cargo/bin:${PATH}"
