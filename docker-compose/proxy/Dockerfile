@@ -6,8 +6,15 @@ WORKDIR /app
 # バイナリをコピー
 COPY ./target/release/proxyserver ./proxyserver
 
-# プロキシ用ルート設定
-RUN ip route add 100.64.0.0/10 via 100.64.0.1 dev eth0
+# 必要なパッケージのインストール
+RUN dnf install -y iproute && dnf clean all
+
+# エントリポイントスクリプトを追加
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# エントリポイントを設定
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
 # 実行コマンド
 CMD ["./proxyserver"]

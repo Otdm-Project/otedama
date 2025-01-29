@@ -5,19 +5,18 @@ RUN dnf update -y \
     dnf install -y \
         gcc \ 
         openssl-devel \ 
-        dnf install -y pkgconfig \
         iproute \
-        iptables 
+        iptables \
+        pkgconfig 
 RUN dnf install -y python3-pip 
-# Rustのインストール
 RUN dnf clean all 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
-RUN echo 'source $HOME/.cargo/env' >> /etc/profile \ 
-    && source /root/.cargo/env
 RUN dnf -y install dnf-plugins-core && dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 RUN dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 # Pythonパッケージcqlshをインストール
 RUN pip install cqlsh
+
+# プロキシ用ルート設定
+RUN --cap-add=NET_ADMIN ip route add 100.64.0.0/10 via 100.64.0.1 dev eth0
 
 # Rust環境のパスを設定
 ENV PATH="/root/.cargo/bin:${PATH}"

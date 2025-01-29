@@ -7,11 +7,6 @@ RUN dnf update -y \
         openssl-devel \ 
         dnf install -y pkgconfig 
 RUN dnf install -y python3-pip 
-# Rustのインストール
-RUN dnf clean all 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && echo 'source $HOME/.cargo/env' >> /etc/profile \ 
-    && source /root/.cargo/env
 
 # Pythonパッケージcqlshをインストール
 RUN pip install cqlsh
