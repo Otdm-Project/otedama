@@ -56,6 +56,7 @@ services:
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
       - ./haproxy/server.pem:/etc/haproxy/server.pem
+      - ./haproxy/server.pem:./haproxy/server.pem
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
       otdm_network:
