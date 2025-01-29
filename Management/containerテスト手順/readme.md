@@ -39,8 +39,9 @@ newgrp docker
 
 ```bash
 git clone https://github.com/Otdm-Project/otedama.git
-git fetch origin otdm-container
-git switch otdm-container
+cd otedama
+git fetch origin OrganizeDockerfile
+git switch OrganizeDockerfile
 ```
 
 ## コンテナのbuild

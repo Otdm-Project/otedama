@@ -22,7 +22,7 @@ services:
     build:
       context: /home/ubuntu/otedama/docker-compose/proxy
       dockerfile: ./Dockerfile
-    user: "1000:1000"
+  #  user: "1000:1000"
 
   #haproxy:
   #  user: "1000:1000"
