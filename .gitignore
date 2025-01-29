@@ -8,3 +8,4 @@
 !**/target/release/proxyserver
 **/data
 .vscode
+docker-compose/haproxy/server.pem
