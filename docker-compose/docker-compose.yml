@@ -38,7 +38,7 @@ services:
       - 8100
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./server.pem:/etc/haproxy/server.pem
+      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
       otdm_network:
@@ -55,7 +55,7 @@ services:
       - 443:443
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - ./server.pem:/etc/haproxy/server.pem
+      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
 
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
