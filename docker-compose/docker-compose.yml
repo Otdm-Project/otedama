@@ -63,8 +63,7 @@ services:
         ipv4_address: 10.0.10.31
     cap_add:
     - NET_ADMIN
-    entrypoint: ["/bin/sh", "-c", "ip route add 100.64.0.0/10 via 10.0.10.20 && exec haproxy -f /usr/local/etc/haproxy/haproxy.cfg"]
-  #  depends_on:
+    command: ["/bin/sh", "/haproxy/start.sh"]  #  depends_on:
   #    - grafana
   db:
     image: cassandra:latest

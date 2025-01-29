@@ -15,7 +15,3 @@ RUN dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin do
 # Pythonパッケージcqlshをインストール
 RUN pip install cqlsh
 
-
-# Rust環境のパスを設定
-ENV PATH="/root/.cargo/bin:${PATH}"
-
