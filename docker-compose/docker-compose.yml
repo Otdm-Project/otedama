@@ -64,7 +64,7 @@ services:
         ipv4_address: 10.0.10.31
     cap_add:
     - NET_ADMIN
-    command: ["/bin/sh", "/haproxy/start.sh"]  #  depends_on:
+    command: ["/bin/sh", "/usr/local/etc/haproxy/start.sh"]  #  depends_on:
   #    - grafana
   db:
     image: cassandra:latest
@@ -115,7 +115,7 @@ services:
   #   volumes:
   #     - ./monitoring/prometheus/data:/prometheus
   #   networks:
-  #     - otdm_network
+  #     - otdm_network/usr/local/etc/haproxy/start.sh
   #   depends_on:
   #     - cadvisor
   #   healthcheck:
