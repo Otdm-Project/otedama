@@ -9,8 +9,8 @@ RUN dnf update -y \
 RUN dnf install -y python3-pip 
 # Rustのインストール
 RUN dnf clean all 
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && echo 'source $HOME/.cargo/env' >> /etc/profile \ 
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y 
+RUN echo 'source $HOME/.cargo/env' >> /etc/profile \ 
     && source /root/.cargo/env
 RUN dnf -y install dnf-plugins-core && dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 RUN dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
