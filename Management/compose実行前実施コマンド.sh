@@ -34,6 +34,14 @@ docker build --no-cache -f Dockerfile.base -t proxy_baseimage:latest .
 docker build --no-cache -f Dockerfile -t proxy:v1.0 .
 ```
 
+haproxy
+docker build --no-cache -f Dockerfile.base -t proxy_baseimage:latest .
+# ↑1/20 廃止しました
+# ↑1/27 廃止するとDockercomposeのエラーの時に毎回ビルドが入って遅いので再度作成
+# 本番イメージの構築
+docker build --no-cache -f Dockerfile -t proxy:v1.0 .
+
+
 実行中コンテナ確認コマンド（停止中も含むには -a ）
 ``` 
 docker ps 
