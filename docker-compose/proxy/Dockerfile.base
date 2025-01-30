@@ -5,7 +5,9 @@ RUN dnf update -y \
     dnf install -y \
         gcc \ 
         openssl-devel \ 
-        dnf install -y pkgconfig 
+        dnf install -y pkgconfig \
+        iproute \
+        iptables 
 RUN dnf install -y python3-pip 
 # Rustのインストール
 RUN dnf clean all 
