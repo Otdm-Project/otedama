@@ -51,4 +51,37 @@ docker compose build --no-cache
 
 docker compose up
 
-Dockerfile更改要件に適用するよう変更
+# Docker-compose 新規構築時（構築し直し含む）用コマンド
+```
+# Docker環境削除
+docker stop $(docker ps -a -q) && docker rm $(docker ps -aq) && 
+docker rmi $(docker images -q) && 
+# git構築
+cd &&
+cd otedama/docker-compose/ && 
+cd && 
+sudo rm -rf otedama && 
+git clone https://github.com/Otdm-Project/otedama.git && 
+cd otedama && 
+git checkout dev-otaki && 
+cd docker-compose &&
+# Dockerイメージ構築
+cd api && 
+docker build --no-cache -f Dockerfile.base -t api_baseimage:latest . && 
+docker build --no-cache -f Dockerfile -t api:v1.0 . && 
+cd .. &&
+cd proxy && 
+docker build --no-cache -f Dockerfile.base -t proxy_baseimage:latest . && 
+docker build --no-cache -f Dockerfile -t proxy:v1.0 . && 
+cd .. &&
+cd vpn && 
+docker build --no-cache -f Dockerfile.base -t vpn_baseimage:latest . && 
+docker build --no-cache -f Dockerfile -t vpn:v1.0 . && 
+cd .. && 
+# Docker構築
+docker compose build --no-cache && 
+docker compose up &&
+# 
+cd . 
+
+```
