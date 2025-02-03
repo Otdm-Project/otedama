@@ -48,7 +48,7 @@ services:
   
   #↓設定に問題がなければ自動起動するのでその設定の必要無し 
   haproxy:
-    image: haproxy:2.8
+    image: haproxy:v1.0
     expose:
       - 9999
     ports:
@@ -58,14 +58,12 @@ services:
       - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
-      - /home/ubuntu/otedama/docker-compose/haproxy/start.sh:/usr/local/etc/haproxy/start.sh
     networks:
       otdm_network:
         ipv4_address: 10.0.10.31
     cap_add:
-    - NET_ADMIN
-    command: ["/bin/sh", "/usr/local/etc/haproxy/start.sh"]  #  depends_on:
-  #    - grafana
+      - NET_ADMIN
+    #    - grafana
   db:
     image: cassandra:latest
     expose:
