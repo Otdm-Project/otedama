@@ -18,7 +18,7 @@ roles_validity: 2000ms
 credentials_validity: 2000ms
 partitioner: org.apache.cassandra.dht.Murmur3Partitioner
 data_file_directories:
-  - /var/lib/cassandra/data
+  - /var/lib/cassandra
 commitlog_directory: /var/lib/cassandra/commitlog
 cdc_enabled: false
 disk_failure_policy: stop
