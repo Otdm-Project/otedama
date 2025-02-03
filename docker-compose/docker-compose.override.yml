@@ -24,8 +24,3 @@ services:
       dockerfile: ./Dockerfile
   #  user: "1000:1000"
 
-  haproxy:
-    build:
-      context: /home/ubuntu/otedama/docker-compose/haproxy
-      dockerfile: ./Dockerfile
-  #  user: "1000:1000"
