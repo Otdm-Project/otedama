@@ -46,26 +46,14 @@ docker build --no-cache -f Dockerfile -t proxy:v1.0 .
 ``` 
 docker ps 
 ```
-これらの停止+コンテナ削除コマンド
-```
-docker stop $(docker ps -a -q) && docker rm $(docker ps -aq)
-```
-Dockerイメージ削除コマンド
-```
-docker rmi $(docker images -q)
-```
-
-docker compose build --no-cache
-
-docker compose up
 
 # Docker-compose 新規構築時（構築し直し含む）用コマンド
 ```
 # Docker環境削除
-docker stop $(docker ps -a -q) && 
-docker rm $(docker ps -aq) && 
-docker rmi $(docker images -q) && 
-docker system prune --volumes && 
+docker stop $(docker ps -a -q) &&  # 実行中のDockerコンテナを停止
+docker rm $(docker ps -aq) && # Dockerコンテナを削除
+docker rmi $(docker images -q) && # Dockerイメージの登録を削除
+docker system prune --volumes && # Dockerイメージをディスクから削除
 # git構築
 cd &&
 cd otedama/docker-compose/ && 
