@@ -1,0 +1,151 @@
+# このファイルを実行する前にすべき事
+# 先にビルドしておくものはこれに記載されたイメージ名で作成する
+services:
+  api:
+    image: api:v1.0
+    ports:
+      - 8080:8080
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.10
+  #  depends_on:
+  #    - grafana
+  vpn:
+    image: vpn:v1.0
+    expose:
+      - 8090
+    ports:
+      - 51820:51820/udp
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.20
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+      - /lib/modules:/lib/modules
+      - /home/ubuntu/otedama/docker-compose/vpn/wg0.conf:/etc/wireguard/wg0.conf
+      - /home/ubuntu/otedama/docker-compose/vpn/start.sh:/home/ubuntu/otedama/docker-compose/vpn/app/start.sh
+  #  depends_on:
+  #    - grafana
+
+  proxy:
+    image: proxy:v1.0
+    expose:
+      - 8100
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.30
+  #  depends_on:
+  #    - grafana
+  
+  #↓設定に問題がなければ自動起動するのでその設定の必要無し 
+  haproxy:
+    image: haproxy:2.8
+    expose:
+      - 9999
+    ports:
+      - 443:443
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
+      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/haproxy.sock:/tmp/haproxy.sock 
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.31
+    cap_add:
+      - NET_ADMIN
+    #    - grafana
+  db:
+    image: cassandra:latest
+    expose:
+      - 9042
+    volumes:
+      - ./db/data:/var/lib/cassandra
+      - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
+      - /var/run/haproxy.sock:/var/run/haproxy.sock 
+    networks:
+      otdm_network:
+        ipv4_address: 10.0.10.40
+  #  depends_on:
+  #    - grafana
+
+#  cadvisor:
+#    image: google/cadvisor:latest
+#    expose:
+#      - 8080
+#    volumes:
+#      - /:/rootfs:ro
+#      - /var/run:/var/run:rw
+#      - /sys:/sys:ro
+#       - /var/lib/docke:/var/lib/docker:ro
+#       - /dev/disk/:/dev/disk:ro
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:8080"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # node_exporter:
+  #   image: quay.io/prometheus/node-exporter:latest
+  #   container_name: node_exporter
+  #   command:
+  #     - '--path.rootfs=/host'
+  #   network_mode: host
+  #   pid: host
+  #   restart: unless-stopped
+  #   volumes:
+  #     - '/:/host:ro,rslave'
+
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   expose:
+  #     - 9090
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./monitoring/prometheus/data:/prometheus
+  #   networks:
+  #     - otdm_network/usr/local/etc/haproxy/start.sh
+  #   depends_on:
+  #     - cadvisor
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:9090"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   expose:
+  #     - 3000
+  #   restart: unless-stopped
+  #   environment:
+  #    - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
+  #   volumes:
+  #     - ./monitoring/grafana/data:/var/lib/grafana
+  #   networks:
+  #     - otdm_network
+  #   depends_on:
+  #     - prometheus
+  #   healthcheck:
+  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
+  #     interval: 30s
+  #     timeout: 10s
+  #     retries: 3
+
+networks:
+  otdm_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.10.0/24
+
