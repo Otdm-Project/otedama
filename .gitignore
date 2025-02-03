@@ -6,6 +6,7 @@
 !**/target/release/apiserver
 !**/target/release/vpnserver
 !**/target/release/proxyserver
+!**/target/release/apiclient
 **/data
 .vscode
 docker-compose/haproxy/server.pem
