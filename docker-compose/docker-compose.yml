@@ -48,7 +48,7 @@ services:
   
   #↓設定に問題がなければ自動起動するのでその設定の必要無し 
   haproxy:
-    image: haproxy:v1.0
+    image: haproxy:2.8
     expose:
       - 9999
     ports:
