@@ -62,8 +62,10 @@ docker compose up
 # Docker-compose 新規構築時（構築し直し含む）用コマンド
 ```
 # Docker環境削除
-docker stop $(docker ps -a -q) && docker rm $(docker ps -aq) && 
+docker stop $(docker ps -a -q) && 
+docker rm $(docker ps -aq) && 
 docker rmi $(docker images -q) && 
+docker system prune --volumes && 
 # git構築
 cd &&
 cd otedama/docker-compose/ && 
