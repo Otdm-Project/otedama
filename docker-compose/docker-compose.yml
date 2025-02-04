@@ -55,7 +55,8 @@ services:
       - 443:443
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
+      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem/server.pem:/usr/local/etc/haproxy/server.pem/server.pem:rw
+    # TODO↑ansibleの導入で自動化する
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/haproxy.sock:/tmp/haproxy.sock 
     networks:
