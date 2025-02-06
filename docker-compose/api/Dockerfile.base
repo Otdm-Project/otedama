@@ -1,15 +1,7 @@
 FROM almalinux:9.5
 
-# 必要なツールをインストール
-RUN dnf update -y \
-    dnf install -y \
-        gcc \ 
-        openssl-devel \ 
-        dnf install -y pkgconfig 
-RUN dnf install -y python3-pip 
-
-# Pythonパッケージcqlshをインストール
-RUN pip install cqlsh
-
-# Rust環境のパスを設定
-ENV PATH="/root/.cargo/bin:${PATH}"
+# システム更新と必要パッケージのインストール
+RUN dnf update -y && \
+    dnf install -y gcc openssl-devel pkgconfig python3-pip && \
+    dnf clean all && \ 
+    pip install cqlsh
