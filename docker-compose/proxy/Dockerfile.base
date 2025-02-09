@@ -1,7 +1,8 @@
 FROM almalinux:9.5
 
 # システム更新と必要パッケージのインストール
-RUN dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo \ 
+RUN dnf -y install dnf-plugins-core && \ 
+    dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo && \ 
     dnf update -y && \
     dnf install -y gcc openssl-devel iproute iptables pkgconfig python3-pip dnf-plugins-core docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
     dnf clean all && \
