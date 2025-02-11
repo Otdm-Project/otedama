@@ -25,6 +25,9 @@ spec:
       containers:
         - image: vpn:v1.0
           name: vpn
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
           ports:
             - containerPort: 51820
               protocol: UDP

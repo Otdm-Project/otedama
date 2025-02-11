@@ -25,6 +25,9 @@ spec:
       containers:
         - image: haproxy:2.8
           name: haproxy
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
           ports:
             - containerPort: 443
               protocol: TCP
