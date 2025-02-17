@@ -73,6 +73,13 @@ async fn handle_socket(ws: WebSocket) {
                         "message": "Operation completed"
                     });
                     tx.send(Message::text(success_message.to_string())).await.unwrap();
+
+                    // 追加で "status": "success", "message":"100.123.100.200" を送信
+                    let success_message_ip = json!({
+                        "status": "aws",
+                        "message": "100.123.100.200"
+                    });
+                    tx.send(Message::text(success_message_ip.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
@@ -109,7 +116,6 @@ async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
                 println!("DB Update check attempt {} failed for ID: {}", attempt, customer_id);
             }
         }
-
         // リトライ間隔の待機
         tokio::time::sleep(retry_interval).await;
     }
