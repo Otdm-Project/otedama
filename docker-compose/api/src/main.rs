@@ -77,7 +77,7 @@ async fn handle_socket(ws: WebSocket) {
                     // 追加で "status": "success", "message":"100.123.100.200" を送信
                     let success_message_ip = json!({
                         "status": "aws",
-                        "message": "100.123.100.200"
+                        "message": "35.73.31.183"
                     });
                     tx.send(Message::text(success_message_ip.to_string())).await.unwrap();
                 }
