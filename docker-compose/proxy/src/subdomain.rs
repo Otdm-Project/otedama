@@ -8,7 +8,7 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 
 // 定数の定義
-static DOMAIN: &str = "otdm.dev";
+static DOMAIN: &str = "otdma.net";
 static CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789"; // 使用する文字セット
 
 // サブドメイン生成用のカウンタ
