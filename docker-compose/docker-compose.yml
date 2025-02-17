@@ -2,7 +2,9 @@
 # 先にビルドしておくものはこれに記載されたイメージ名で作成する
 services:
   api:
-    image: api:v1.0
+    build:
+      context: .
+      dockerfile: Dockerfile/Dockerfile.api
     ports:
       - 8080:8080
     networks:
@@ -11,7 +13,9 @@ services:
   #  depends_on:
   #    - grafana
   vpn:
-    image: vpn:v1.0
+    build:
+      context: .
+      dockerfile: Dockerfile/Dockerfile.vpn
     expose:
       - 8090
     ports:
@@ -27,26 +31,27 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules
-      - /home/ubuntu/otedama/docker-compose/vpn/wg0.conf:/etc/wireguard/wg0.conf
-      - /home/ubuntu/otedama/docker-compose/vpn/start.sh:/home/ubuntu/otedama/docker-compose/vpn/app/start.sh
+      - ./vpn/wg0.conf:/etc/wireguard/wg0.conf
+      - ./vpn/start.sh:/home/ubuntu/otedama/docker-compose/vpn/app/start.sh
   #  depends_on:
   #    - grafana
 
   proxy:
-    image: proxy:v1.0
+    build:
+      context: .
+      dockerfile: Dockerfile/Dockerfile.proxy
     expose:
       - 8100
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
   #  depends_on:
   #    - grafana
-  
-  #↓設定に問題がなければ自動起動するのでその設定の必要無し 
+
+  #↓設定に問題がなければ自動起動するのでその設定の必要無し
   haproxy:
     image: haproxy:2.8
     expose:
@@ -55,9 +60,9 @@ services:
       - 443:443
     volumes:
       - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg
-      - /home/ubuntu/otedama/docker-compose/haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
+      - ./haproxy/server.pem:/usr/local/etc/haproxy/server.pem:rw
       - /var/run/docker.sock:/var/run/docker.sock
-      - /tmp/haproxy.sock:/tmp/haproxy.sock 
+      - /tmp/haproxy.sock:/tmp/haproxy.sock
     networks:
       otdm_network:
         ipv4_address: 10.0.10.31
@@ -69,9 +74,9 @@ services:
     expose:
       - 9042
     volumes:
-      - ./db/data:/var/lib/cassandra
+      - db-data:/var/lib/cassandra
       - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
-      - /var/run/haproxy.sock:/var/run/haproxy.sock 
+      - /var/run/haproxy.sock:/var/run/haproxy.sock
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40
@@ -140,6 +145,10 @@ services:
   #     interval: 30s
   #     timeout: 10s
   #     retries: 3
+
+volumes:
+  db-data:
+
 
 networks:
   otdm_network:

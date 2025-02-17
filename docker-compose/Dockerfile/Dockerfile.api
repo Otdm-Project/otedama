@@ -5,11 +5,17 @@ RUN dnf update -y \
     dnf install -y \
         gcc \ 
         openssl-devel \ 
-        dnf install -y pkgconfig 
-RUN dnf install -y python3-pip 
+        pkgconfig \
+        python3-pip 
 
 # Pythonパッケージcqlshをインストール
 RUN pip install cqlsh
 
-# Rust環境のパスを設定
-ENV PATH="/root/.cargo/bin:${PATH}"
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# バイナリをコピー
+COPY rust/build/apiserver ./apiserver
+
+# 実行コマンド
+CMD ["./apiserver"]

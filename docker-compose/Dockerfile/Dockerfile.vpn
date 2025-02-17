@@ -1,0 +1,50 @@
+FROM almalinux:9.5
+
+# 必要なツールをインストール
+RUN dnf install -y epel-release dnf-plugins-core && \
+    dnf config-manager --set-enabled crb && \
+    dnf upgrade -y && \
+    dnf install -y wireguard-tools \
+        gcc \
+        clang \
+        openssl-devel \
+        libstdc++-static \
+        make \
+        python3-pip \
+        iproute \
+        iptables \ 
+    && dnf clean all \
+    && pip install --no-cache-dir cqlsh \
+    &&  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Rust環境のパスを設定
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# WireGuard設定ファイルをコピー
+#COPY /home/ubuntu/otedama/docker-compose/vpn/wg0.conf /etc/wireguard/wg0.conf
+# /etc/wireguardディレクトリを作成し、適切な権限を設定
+RUN mkdir -p /etc/wireguard && \
+    chmod 700 /etc/wireguard && \
+    chown root:root /etc/wireguard
+
+# 起動スクリプトをコピー
+COPY vpn/start.sh ./start.sh
+
+
+# WireGuardの設定ファイルを移動
+COPY vpn/wg0.conf /etc/wireguard/wg0.conf
+# WireGuardの秘密鍵をコピー
+COPY vpn/privatekey /etc/wireguard/privatekey
+
+# VPNServerのバイナリをコピー(start.shで使用)
+COPY rust/build/vpnserver ./vpnserver
+
+
+# スクリプトに実行権限を付与
+RUN chown root:root ./start.sh && chmod +x ./start.sh
+
+# エントリーポイントをスクリプトに設定
+CMD ["./start.sh"]

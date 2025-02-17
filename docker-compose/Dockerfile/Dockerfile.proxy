@@ -1,0 +1,29 @@
+FROM almalinux:9.5
+
+# 必要なツールをインストール
+RUN dnf update -y && \
+    dnf install -y \
+        gcc \
+        openssl-devel \
+        iproute \
+        iptables \
+        pkgconfig \
+        python3-pip \
+        dnf-plugins-core && \
+    dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo && \
+    dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin && \
+    dnf clean all
+
+# Pythonパッケージcqlshをインストール
+RUN pip install cqlsh
+
+# 作業ディレクトリを設定
+WORKDIR /app
+
+# バイナリをコピー
+COPY rust/build/proxyserver ./proxyserver
+
+# 実行コマンド
+CMD ["./proxyserver"]
+
+# HAProxyは自動起動なのでここにその関連は記述しない
