@@ -13,6 +13,7 @@ use tokio::time::Duration;
 
 // IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
+const VPN_SERVER_IP: &str =  "35.73.31.183";
 
 #[tokio::main]
 async fn main() {
@@ -73,13 +74,6 @@ async fn handle_socket(ws: WebSocket) {
                         "message": "Operation completed"
                     });
                     tx.send(Message::text(success_message.to_string())).await.unwrap();
-
-                    // 追加で "status": "success", "message":"100.123.100.200" を送信
-                    let success_message_ip = json!({
-                        "status": "aws",
-                        "message": "35.73.31.183"
-                    });
-                    tx.send(Message::text(success_message_ip.to_string())).await.unwrap();
                 }
             }
             Err(e) => {
@@ -101,6 +95,7 @@ struct CustomerInfo {
     vpn_ip_client: String,
     vpn_ip_server: String,
     subdomain: String,
+    vpnserver_ip: String
 }
 
 async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
@@ -198,6 +193,7 @@ fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
                 vpn_ip_client: fields[2].to_string(),
                 vpn_ip_server: fields[3].to_string(),
                 subdomain: fields[4].to_string(),
+                vpnserver_ip: VPN_SERVER_IP.to_string(),
             });
         }
     }
