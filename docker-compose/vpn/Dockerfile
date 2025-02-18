@@ -16,8 +16,8 @@ COPY ./start.sh ./start.sh
 
 # WireGuardの設定ファイルを移動
 COPY ./wg0.conf /etc/wireguard/wg0.conf
-# WireGuardの秘密鍵をコピー
-COPY ./privatekey /etc/wireguard/privatekey
+# WireGuardの秘密鍵を生成
+RUN wg genkey | tee /etc/wireguard/privatekey | sed -i "s#PRIVKEY#$(cat /etc/wireguard/privatekey | tr -d '\n')#" /etc/wireguard/wg0.conf
 
 # VPNServerのバイナリをコピー(start.shで使用)
 COPY ./target/release/vpnserver ./vpnserver
