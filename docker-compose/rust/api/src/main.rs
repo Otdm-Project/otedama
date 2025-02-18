@@ -13,6 +13,7 @@ use tokio::time::Duration;
 
 // IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
+const VPN_SERVER_IP: &str =  "35.73.31.183";
 
 #[tokio::main]
 async fn main() {
@@ -94,6 +95,7 @@ struct CustomerInfo {
     vpn_ip_client: String,
     vpn_ip_server: String,
     subdomain: String,
+    vpnserver_ip: String
 }
 
 async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
@@ -109,7 +111,6 @@ async fn wait_for_db_update(customer_id: usize) -> Option<CustomerInfo> {
                 println!("DB Update check attempt {} failed for ID: {}", attempt, customer_id);
             }
         }
-
         // リトライ間隔の待機
         tokio::time::sleep(retry_interval).await;
     }
@@ -192,6 +193,7 @@ fn parse_customer_info(output: &str) -> Option<CustomerInfo> {
                 vpn_ip_client: fields[2].to_string(),
                 vpn_ip_server: fields[3].to_string(),
                 subdomain: fields[4].to_string(),
+                vpnserver_ip: VPN_SERVER_IP.to_string(),
             });
         }
     }
