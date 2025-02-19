@@ -10,8 +10,7 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.10
-  #  depends_on:
-  #    - grafana
+
   vpn:
     build:
       context: ./vpn
@@ -31,8 +30,6 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules
-  #  depends_on:
-  #    - grafana
 
   proxy:
     build:
@@ -46,8 +43,6 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.30
-  #  depends_on:
-  #    - grafana
 
   #↓設定に問題がなければ自動起動するのでその設定の必要無し
   haproxy:
@@ -66,7 +61,7 @@ services:
         ipv4_address: 10.0.10.31
     cap_add:
       - NET_ADMIN
-    #    - grafana
+
   db:
     image: cassandra:latest
     expose:
@@ -76,21 +71,24 @@ services:
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40
-  #  depends_on:
-  #    - grafana
 
   cadvisor:
-    image: google/cadvisor:latest
-    expose:
-      - 8080
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    privileged: true
+    networks:
+      - otdm_network
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
       - /sys:/sys:ro
       - /var/lib/docker:/var/lib/docker:ro
-      - /dev/disk/:/dev/disk:ro
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
     devices:
-      - /dev/kmsg:/dev/kmsg
+      - /dev/kmsg
+    restart: unless-stopped
+    expose:
+      - 8080
 
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
@@ -109,6 +107,8 @@ services:
       - 9115
     volumes:
       - ./blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml
+    networks:
+      - otdm_network
 
 
   prometheus:
