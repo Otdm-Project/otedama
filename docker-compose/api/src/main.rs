@@ -10,10 +10,32 @@ use serde::{Serialize};
 use serde_json::json;
 use std::io::Result;
 use tokio::time::Duration;
+use lazy_static::lazy_static;
 
 // IDに使用する値のカウンタ
 static ID_COUNTER: AtomicUsize = AtomicUsize::new(1);
-const VPN_SERVER_IP: &str =  "35.73.31.183";
+
+// 自サーバのグローバルIPアドレスを取得し、それをVPNサーバのものとして設定
+fn get_global_ip() -> String {
+    let output = Command::new("curl")
+        .arg("-s")
+        .arg("ifconfig.me")
+        .output()
+        .expect("Failed to get global IP");
+
+    let ip = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+    if ip.is_empty() {
+        panic!("Failed to retrieve global IP.");
+    }
+
+    ip
+}
+// VPNサーバのアドレス取得を最初に実行しておき、かつ保存する
+// RustにおけるStatic（定数）はコンパイル時に通常確定する必要があるのを回避する
+lazy_static! {
+    static ref VPN_SERVER_IP: String = get_global_ip();
+}
 
 #[tokio::main]
 async fn main() {

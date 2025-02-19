@@ -6,9 +6,44 @@ use std::fs::{read_to_string, OpenOptions};
 use std::io::Write;
 use std::sync::Mutex;
 use once_cell::sync::Lazy;
+use lazy_static::lazy_static;
 
-// 定数の定義
-static DOMAIN: &str = "otdma.net";
+// グローバルIPを取得
+fn get_global_ip() -> String {
+    let output = Command::new("curl")
+        .arg("-s")
+        .arg("ifconfig.me")
+        .output()
+        .expect("Failed to get global IP");
+
+    let ip = String::from_utf8_lossy(&output.stdout).trim().to_string();
+
+    if ip.is_empty() {
+        panic!("Failed to retrieve global IP.");
+    }
+
+    ip
+}
+
+// IP に応じてドメインを決定
+fn determine_domain() -> &'static str {
+    let global_ip = get_global_ip();
+
+    match global_ip.as_str() {
+        "35.73.31.183" => "otdma.net",
+        "163.43.140.19" => "otdm.dev",
+        _ => {
+            println!("Unknown IP: {}. Defaulting to otdma.net", global_ip);
+            "otdma.net"
+        }
+    }
+}
+
+// DOMAIN を設定
+lazy_static! {
+    static ref DOMAIN: String = determine_domain().to_string();
+}
+
 static CHARSET: &[u8] = b"abcdefghijklmnopqrstuvwxyz0123456789"; // 使用する文字セット
 
 // サブドメイン生成用のカウンタ
@@ -46,7 +81,7 @@ pub fn generate_subdomain() -> Result<String> {
     }
 
     // 完全なドメイン名を生成
-    let full_domain = format!("{}.{}", subdomain, DOMAIN);
+    let full_domain = format!("{}.{}", subdomain, DOMAIN.as_str());
     println!("Generated subdomain: {}", full_domain);
 
     Ok(full_domain)
