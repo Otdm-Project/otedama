@@ -25,7 +25,7 @@ libstdc++-static \
 make \
 python3-pip \
 iproute \
-iptables \ 
+iptables
 
 dnf clean all 
 
@@ -49,14 +49,11 @@ chown root:root /etc/wireguard
 
 EOF
 
-# 起動スクリプトをコピー
-COPY ./start.sh ./start.sh
-
-
 # WireGuardの設定ファイルを移動
 COPY ./wg0.conf /etc/wireguard/wg0.conf
-# WireGuardの秘密鍵を生成
-RUN wg genkey | tee ./privatekey | sed -i "s#PRIVKEY#$(cat ./privatekey | tr -d '\n')#" ./wg0.conf
+
+# 起動スクリプトをコピー
+COPY ./start.sh ./start.sh
 
 # VPNServerのバイナリをコピー(start.shで使用)
 COPY --from=builder /app/target/release/vpnserver ./vpnserver

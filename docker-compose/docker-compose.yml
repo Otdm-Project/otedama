@@ -31,8 +31,6 @@ services:
     volumes:
       - /sys/fs/cgroup:/sys/fs/cgroup:ro
       - /lib/modules:/lib/modules
-      - ./vpn/wg0.conf:/etc/wireguard/wg0.conf
-      - ./vpn/start.sh:/home/ubuntu/otedama/docker-compose/vpn/app/start.sh
   #  depends_on:
   #    - grafana
 
@@ -75,78 +73,79 @@ services:
       - 9042
     volumes:
       - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
-      - /var/run/haproxy.sock:/var/run/haproxy.sock
     networks:
       otdm_network:
         ipv4_address: 10.0.10.40
   #  depends_on:
   #    - grafana
 
-#  cadvisor:
-#    image: google/cadvisor:latest
-#    expose:
-#      - 8080
-#    volumes:
-#      - /:/rootfs:ro
-#      - /var/run:/var/run:rw
-#      - /sys:/sys:ro
-#       - /var/lib/docke:/var/lib/docker:ro
-#       - /dev/disk/:/dev/disk:ro
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:8080"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  cadvisor:
+    image: google/cadvisor:latest
+    expose:
+      - 8080
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk/:/dev/disk:ro
+    devices:
+      - /dev/kmsg:/dev/kmsg
 
-  # node_exporter:
-  #   image: quay.io/prometheus/node-exporter:latest
-  #   container_name: node_exporter
-  #   command:
-  #     - '--path.rootfs=/host'
-  #   network_mode: host
-  #   pid: host
-  #   restart: unless-stopped
-  #   volumes:
-  #     - '/:/host:ro,rslave'
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    network_mode: host
+    pid: host
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro,rslave'
 
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   expose:
-  #     - 9090
-  #   restart: unless-stopped
-  #   volumes:
-  #     - ./monitoring/prometheus/data:/prometheus
-  #   networks:
-  #     - otdm_network/usr/local/etc/haproxy/start.sh
-  #   depends_on:
-  #     - cadvisor
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:9090"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+  blackbox_exporter:
+    image: quay.io/prometheus/blackbox-exporter:latest
+    expose:
+      - 9115
+    volumes:
+      - ./blackbox_exporter/config.yml:/etc/blackbox_exporter/config.yml
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   expose:
-  #     - 3000
-  #   restart: unless-stopped
-  #   environment:
-  #    - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
-  #   volumes:
-  #     - ./monitoring/grafana/data:/var/lib/grafana
-  #   networks:
-  #     - otdm_network
-  #   depends_on:
-  #     - prometheus
-  #   healthcheck:
-  #     test: ["CMD", "curl", "-f", "http://localhost:3000"]
-  #     interval: 30s
-  #     timeout: 10s
-  #     retries: 3
+
+  prometheus:
+    image: prom/prometheus:latest
+    expose:
+      - 9090
+    restart: unless-stopped
+    volumes:
+      - prometheus-data:/prometheus
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - otdm_network
+    depends_on:
+      - cadvisor
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9090"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - 3000:3000
+    restart: unless-stopped
+    environment:
+    - GF_SERVER_ROOT_URL=http://monitoring.otdm.dev/
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - otdm_network
+    depends_on:
+      - prometheus
 
 volumes:
-  db-data:
+  grafana-data:
+  prometheus-data:
 
 
 networks:
