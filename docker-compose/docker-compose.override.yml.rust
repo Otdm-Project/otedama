@@ -1,7 +1,0 @@
-services:
-  rust-builder:
-    build:
-      context: .
-      dockerfile: Dockerfile/Dockerfile.rust
-    volumes:
-      - ./build:/workspace/build

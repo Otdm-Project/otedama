@@ -3,8 +3,8 @@
 services:
   api:
     build:
-      context: .
-      dockerfile: Dockerfile/Dockerfile.api
+      context: ./api
+      dockerfile: Dockerfile
     ports:
       - 8080:8080
     networks:
@@ -14,8 +14,8 @@ services:
   #    - grafana
   vpn:
     build:
-      context: .
-      dockerfile: Dockerfile/Dockerfile.vpn
+      context: ./vpn
+      dockerfile: Dockerfile
     expose:
       - 8090
     ports:
@@ -38,8 +38,8 @@ services:
 
   proxy:
     build:
-      context: .
-      dockerfile: Dockerfile/Dockerfile.proxy
+      context: ./proxy
+      dockerfile: Dockerfile
     expose:
       - 8100
     volumes:
@@ -74,7 +74,6 @@ services:
     expose:
       - 9042
     volumes:
-      - db-data:/var/lib/cassandra
       - ./db/cassandra.yaml:/etc/cassandra/cassandra.yaml
       - /var/run/haproxy.sock:/var/run/haproxy.sock
     networks:
