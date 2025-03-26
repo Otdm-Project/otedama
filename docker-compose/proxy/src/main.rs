@@ -1,16 +1,18 @@
-use std::process::Command;
-use std::io::{Result, Error, ErrorKind};
-use std::fs::{read_to_string, OpenOptions};
-use std::io::Write;
-use std::sync::Mutex;
+use std::{
+    fs::{read_to_string, OpenOptions},
+    io::{Result, Error, ErrorKind, Write},
+    net::SocketAddr,
+    process::Command,
+    sync::Mutex,
+};
 use once_cell::sync::Lazy;
-use warp::ws::{Message, WebSocket};
+use warp::{
+    ws::{Message, WebSocket},
+    Filter,
+};
 use futures_util::{StreamExt, SinkExt};
-use warp::Filter;
-use std::net::SocketAddr;
 use tokio::time::{sleep, Duration};
 
-// ====== db.rs から移管 ======
 // 顧客のIDを指定してサブドメインをDBServerに送信
 pub fn insert_subdomain_to_db(customer_id: usize, subdomain: &str) -> Result<()> {
     let insert_query = format!(
@@ -69,9 +71,6 @@ pub fn get_virtual_ips(customer_id: usize) -> Result<(String, String)> {
         }
     }
 }
-
-
-// ====== subdomain.rs から移管 ======
 
 // 定数の定義
 static DOMAIN: &str = "otdma.net";
@@ -248,8 +247,6 @@ pub fn reload_haproxy() -> Result<()> {
 
     Ok(())
 }
-
-// ====== handler.rs から移管 ======
 
 pub async fn handle_socket(ws: WebSocket) {
     let (mut tx, mut rx) = ws.split();
