@@ -6,6 +6,14 @@ use std::sync::Mutex;
 use once_cell::sync::Lazy;
 use warp::ws::{Message, WebSocket};
 use futures_util::{StreamExt, SinkExt};
+use std::process::Command;
+use std::io::{Result, Error, ErrorKind};
+use std::fs::{read_to_string, OpenOptions};
+use std::io::Write;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
+use warp::ws::{Message, WebSocket};
+use futures_util::{StreamExt, SinkExt};
 use warp::Filter;
 use std::net::SocketAddr;
 use tokio::time::{sleep, Duration};
@@ -334,6 +342,7 @@ async fn main() {
     let ws_route = warp::path("ws")
         .and(warp::ws())
         .map(|ws: warp::ws::Ws| {
+            ws.on_upgrade(handle_socket)
             ws.on_upgrade(handle_socket)
         });
 
